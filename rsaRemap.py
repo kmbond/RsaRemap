@@ -19,7 +19,7 @@ _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 expName = 'rsaRemap'
-expInfo = {u'Day': u'',u'session':u'', u'participant': u'', u'group': u''}
+expInfo = {u'Day': u'',u'session':u'', u'participant': u''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -29,8 +29,8 @@ session = int(expInfo['session'])
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 
-out_all_fn =  _thisDir + os.sep + 'data/%s_%s_%s_responses.csv' %(expInfo['participant'], expName, expInfo['session'])
-data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'img_filename'))
+out_all_fn =  _thisDir + os.sep + 'data/%s_%s_%s_%s_responses.csv' %expName, (expInfo['participant'],expInfo['Day'] , expInfo['session'])
+data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'chunk_id'))
 
 
 # An ExperimentHandler isn't essential but helps with data saving
@@ -48,7 +48,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(size=(500, 500), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=(500, 500), fullscr=False, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     )
@@ -98,29 +98,67 @@ text = visual.TextStim(win=win, ori=0, name='text',
 #######################
 #### Set up onsets ####
 #######################
-keys = [2, 3, 4, 5]
-img_filenames = ['image_folder/stim_2.png', 'image_folder/stim_3.png', 'image_folder/stim_4.png', 'image_folder/stim_5.png']
+#Visual chunks
+ChunkC1 = ['A', 'B', 'D', 'A']
+ChunkC2 = ['C', 'D', 'B', 'D']
+ChunkC3 = ['B', 'A', 'C', 'B']
+ChunkC4 = ['D', 'C', 'A', 'C']
+#Response chunks
+ChunkR1 = ['I', 'M', 'P', 'I']
+ChunkR2 = ['R', 'P', 'M', 'P']
+ChunkR3 = ['M', 'I', 'R', 'M']
+ChunkR4 = ['P', 'R', 'I', 'R']
 
-img_dicts = [dict(zip(kperm, img_filenames)) for kperm in itertools.permutations(keys, len(img_filenames))]
-img_dicts = [img_dicts[i] for i in (0,23,13,4,8,21,16,7)]
+#static dict
+key_map = {'I':2, 'M':3, 'R':4, 'P':5}
 
-#Dynamic mapping
-img_dict = img_dicts[session-1]
-#Static mapping
-#img_dict = {2: 'image_folder/stim_2.png', 3: 'image_folder/stim_3.png', 4: 'image_folder/stim_4.png', 5: 'image_folder/stim_5.png'}
+#Current mapping
+img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C': 'image_folder/stim_4.png', 'D': 'image_folder/stim_5.png'}
 
-corr_thresh = 0.1
+#This dict changes each run.
+resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'M':'C' ,'R':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'M':'B', 'R':'C' ,'I':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
+resp_dict = resp_dict[session-1]
+resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
+
+ChunkC1_img = [img_dict[letter] for letter in ChunkC1]
+ChunkC1_cor_key = [key_map[resp_dict_invert[letter]] for letter in ChunkC1]
+ChunkC2_img = [img_dict[letter] for letter in ChunkC2]
+ChunkC2_cor_key = [key_map[resp_dict_invert[letter]] for letter in ChunkC2]
+ChunkC3_img = [img_dict[letter] for letter in ChunkC3]
+ChunkC3_cor_key = [key_map[resp_dict_invert[letter]] for letter in ChunkC3]
+ChunkC4_img = [img_dict[letter] for letter in ChunkC4]
+ChunkC4_cor_key = [key_map[resp_dict_invert[letter]] for letter in ChunkC4]
+
+ChunkR1_img = [img_dict[resp_dict[letter]] for letter in ChunkR1]
+ChunkR1_cor_key = [key_map[letter] for letter in ChunkR1]
+ChunkR2_img = [img_dict[resp_dict[letter]] for letter in ChunkR2]
+ChunkR2_cor_key = [key_map[letter] for letter in ChunkR2]
+ChunkR3_img = [img_dict[resp_dict[letter]] for letter in ChunkR3]
+ChunkR3_cor_key = [key_map[letter] for letter in ChunkR3]
+ChunkR4_img = [img_dict[resp_dict[letter]] for letter in ChunkR4]
+ChunkR4_cor_key = [key_map[letter] for letter in ChunkR4]
+
+chunk_dict = {'chunk_C1': ChunkC1_img, 'chunk_C2': ChunkC2_img,'chunk_C3': ChunkC3_img,'chunk_C4': ChunkC4_img,'chunk_R1': ChunkR1_img,'chunk_R2': ChunkR2_img,'chunk_R3': ChunkR3_img,'chunk_R4': ChunkR4_img}
+cor_resp_dict = {'chunk_C1': ChunkC1_cor_key, 'chunk_C2': ChunkC2_cor_key,'chunk_C3': ChunkC3_cor_key,'chunk_C4': ChunkC4_cor_key,'chunk_R1': ChunkR1_cor_key,'chunk_R2': ChunkR2_cor_key,'chunk_R3': ChunkR3_cor_key,'chunk_R4': ChunkR4_cor_key}
+
+corr_thresh = 0.05
 dfStims = pd.DataFrame
 sequence_img_ids = []
 
 key_dict = {2:'2', 3:'3', 4:'4', 5:'5'}
 
+keys = [1, 2, 3, 4,5,6,7,8]
+img_filenames = ['chunk_C1', 'chunk_C2', 'chunk_C3', 'chunk_C4', 'chunk_R1', 'chunk_R2', 'chunk_R3', 'chunk_R4']
+
+img_dict = dict(zip(keys, img_filenames))
+
+
 isDone = 0
 while not isDone:
-    trial_types = np.asarray([2, 3, 4, 5])
-    trial_IDs = np.asarray(range(4))
-    trial_freq = np.asarray([12, 12, 12, 12])
+    trial_types = np.asarray([1,2,3,4,5,6,7,8])
+    trial_IDs = np.asarray(range(8))
     iti_range = np.asarray([2, 2, 2, 2, 3, 3, 3, 4, 5, 6, 7, 8])
+
 
     n_post = 3
     t_vec = []
@@ -128,7 +166,7 @@ while not isDone:
     tid_vec = []
 
     for tt in range(0,len(trial_types)):
-        t_vec = np.repeat(trial_types,12)
+        t_vec = np.repeat(trial_types,6)
         iti_vec = np.tile(iti_range,4)
 
     np.random.shuffle(t_vec)
@@ -141,7 +179,7 @@ while not isDone:
     vec = vec + [0,0,0]
     dfStims = pd.DataFrame()
     X = np.zeros((len(vec),len(trial_types)))
-    ons = np.zeros((12,4))
+    ons = np.zeros((6,8))
     for c in trial_types:
         a = np.where(vec==c)[0]
         ons[:,c-2] = a*2
@@ -174,7 +212,6 @@ dfStims['trial_ans'] = vec
 filename = _thisDir + os.sep + 'data/%s_%s_%s_onsets.csv' %(expInfo['participant'], expName, expInfo['session'])
 np.savetxt(filename, ons, '%5.2f',delimiter=",")
 dfStims.to_csv('MM_onsets.csv', index= False)
-
 
 #######################
 ## Save as mat file for SPM
@@ -306,79 +343,87 @@ for thisTrial in trials:
 
 
     if trial_img != 'image_folder/skip.png':
-        fixation.setAutoDraw(False)
-        win.flip()
-        image.setImage(trial_img)
+        chunk = chunk_dict[trial_img]
+        cor_resp = cor_resp_dict[trial_img]
+        event.clearEvents(eventType='keyboard') #clear after executing each chunk
         key_response = event.BuilderKeyResponse()  # create an object of type KeyResponse
         key_response.status = NOT_STARTED
-        # keep track of which components have finished
-        trialComponents = []
-        trialComponents.append(image)
-        trialComponents.append(key_response)
+        for chunk_element,this_cor_resp in zip(chunk, cor_resp):
+            
+            fixation.setAutoDraw(False)
+            win.flip()
+            image.setImage(chunk_element)
 
-        for thisComponent in trialComponents:
-            if hasattr(thisComponent, 'status'):
-                thisComponent.status = NOT_STARTED
-
-        #-------Start Routine "trial"-------
-        continueRoutine = True
-        trialClock.reset()  # clock
-        # Print routTimer to verify matches correct onset timings.
-        # print routineTimer.getTime()
-
-        while continueRoutine:
-                   # get current me
-            t = trialClock.getTime()
-            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-            # update/draw components on each frame
-
-            # *image* updates
-            if t >= 0.0 and image.status == NOT_STARTED:
-                # keep track of start time/frame for later
-                image.tStart = t  # underestimates by a little under one frame
-                image.frameNStart = frameN  # exact frame index
-                image.setAutoDraw(True)
-                onsetTime = globalClock.getTime()
-            if image.status == STARTED and t >= (0.0 + (1.0-win.monitorFramePeriod*0.75)): #most of one frame period left
-                image.setAutoDraw(False)
-                continueRoutine = False
-            # *key_response* updates
-            if t >= 0.0 and key_response.status == NOT_STARTED:
-                # keep track of start time/frame for later
-                key_response.tStart = t  # underestimates by a little under one frame
-                key_response.frameNStart = frameN  # exact frame index
-                key_response.status = STARTED
-                # keyboard checking is just starting
-                key_response.clock.reset()  # now t=0
-                event.clearEvents(eventType='keyboard')
-            if key_response.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
-                key_response.status = STOPPED
-                continueRoutine = False
-            if key_response.status == STARTED:
-                theseKeys = event.getKeys(keyList=['2', '3', '4', '5'])
-
-                # check for quit:
-                if "escape" in theseKeys:
-                    endExpNow = True
-                if len(theseKeys) > 0:  # at least one key was pressed
-                    key_response.keys.extend(theseKeys)  # storing all keys
-                    key_response.rt.append(key_response.clock.getTime())
-            # check if all components have finished
-            if not continueRoutine:  # a component has requested a forced-end of Routine
-                break
+            # keep track of which components have finished
+            trialComponents = []
+            trialComponents.append(image)
+            trialComponents.append(key_response)
 
             for thisComponent in trialComponents:
-                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                    continueRoutine = True
-                    break  # at least one component has not yet finished
+                if hasattr(thisComponent, 'status'):
+                    thisComponent.status = NOT_STARTED
 
-            # check for quit (the Esc key)
-            if endExpNow or event.getKeys(keyList=["escape"]):
-                core.quit()
+            #-------Start Routine "trial"-------
+            continueRoutine = True
+            trialClock.reset()  # clock
+            # Print routTimer to verify matches correct onset timings.
+            # print routineTimer.getTime()
 
-            # refresh the screen
-            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-                win.flip()
+            while continueRoutine:
+                       # get current me
+                t = trialClock.getTime()
+                frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+                # update/draw components on each frame
+
+                # *image* updates
+                if t >= 0.0 and image.status == NOT_STARTED:
+                    # keep track of start time/frame for later
+                    image.tStart = t  # underestimates by a little under one frame
+                    image.frameNStart = frameN  # exact frame index
+                    image.setAutoDraw(True)
+                    onsetTime = globalClock.getTime()
+                if image.status == STARTED and t >= (0.0 + (1.0-win.monitorFramePeriod*0.75)): #most of one frame period left
+                    image.setAutoDraw(False)
+                    continueRoutine = False
+                # *key_response* updates
+                if t >= 0.0 and key_response.status == NOT_STARTED:
+                    # keep track of start time/frame for later
+                    key_response.tStart = t  # underestimates by a little under one frame
+                    key_response.frameNStart = frameN  # exact frame index
+                    key_response.status = STARTED
+                    # keyboard checking is just starting
+                    key_response.clock.reset()  # now t=0
+
+                if key_response.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
+                    key_response.status = STOPPED
+                    continueRoutine = False
+                if key_response.status == STARTED:
+                    theseKeys = event.getKeys(keyList=['2', '3', '4', '5'])
+
+                    # check for quit:
+                    if "escape" in theseKeys:
+                        endExpNow = True
+                    if len(theseKeys) > 0:  # at least one key was pressed
+                        key_response.keys.extend(theseKeys)  # storing all keys
+                        key_response.rt.append(key_response.clock.getTime())
+                        break
+                # check if all components have finished
+                if not continueRoutine:  # a component has requested a forced-end of Routine
+                    break
+
+                for thisComponent in trialComponents:
+                    if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                        continueRoutine = True
+                        break  # at least one component has not yet finished
+
+                # check for quit (the Esc key)
+                if endExpNow or event.getKeys(keyList=["escape"]):
+                    core.quit()
+                print key_response.keys
+                # refresh the screen
+                if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+                    win.flip()
+
         #-------Ending Routine "trial"-------
         for thisComponent in trialComponents:
             if hasattr(thisComponent, "setAutoDraw"):
@@ -398,8 +443,8 @@ for thisTrial in trials:
         win.flip()
         #Save Data to output File
 
-
-        data_out.loc[len(data_out)+1]=[onsetTime,trial_ans, str(key_response.keys).strip('[]'), trial_img]
+        #Change this trail_ans
+        data_out.loc[len(data_out)+1]=[onsetTime,cor_resp_dict[trial_img], str(key_response.keys).strip('[]'), trial_img]
         data_out.to_csv(out_all_fn, index=False)
 
     elif trial_img == 'image_folder/skip.png':

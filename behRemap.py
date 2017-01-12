@@ -23,7 +23,7 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'behRemap'
-expInfo = {u'Day': u'',u'session':u'', u'SID': u'', u'group': u''}
+expInfo = {u'session':u'', u'SID': u'', u'group': u''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -34,8 +34,8 @@ session = int(expInfo['session'])
 filename = _thisDir + os.sep + 'data/%s_%s_%s_group_%s' %(expInfo['SID'], expName, expInfo['date'], expInfo['group'])
 
 # Output summary data and analyzed files
-out_sum_fn =  _thisDir + os.sep +'data/%s_summary_%s_%s_Day_%s_group_%s.csv' %(expInfo['SID'], expName, expInfo['date'], expInfo['Day'],  expInfo['group'])
-out_all_fn =  _thisDir + os.sep +'data/%s_allResp_%s_%s_Day_%s_group_%s.csv' %(expInfo['SID'], expName,  expInfo['date'], expInfo['Day'],   expInfo['group'])
+out_sum_fn =  _thisDir + os.sep +'data/%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['SID'], expName, expInfo['date'], expInfo['session'],  expInfo['group'])
+out_all_fn =  _thisDir + os.sep +'data/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['SID'], expName,  expInfo['date'], expInfo['session'],   expInfo['group'])
 
 data_out = pd.DataFrame(columns=('block','response','rt', 'type', 'keyPressed', 'correctKey'))
 
@@ -54,6 +54,11 @@ if  expInfo['group'] == 'm':
 if  expInfo['group'] == 'g':
     img_dict = img_dicts[0]
     key_dict = key_dicts[session-1]
+#64 chunks total
+#chunkSize = 4
+#16 repititions of each chunk
+#no pause after first cue during first 7 blocks
+
 
 
 
@@ -83,12 +88,12 @@ def genRandom(n_trials):
 #Generate Sequence Ordering
 def genSequence(n_trials):
     #Generate Sequence Stimuli Ordering.
-    sequence_stims = [2,3,4,5,2,3,4,5,2,3,4,5]
-    rota_ind = randint(1,len(sequence_stims)-1)
-    sequence_stims = sequence_stims[rota_ind:]  + sequence_stims[:rota_ind]
+    sequence_stims = [2,3,5,2,4,5,3,5,3,2,4,3,5,4,2,4]
+    #rota_ind = randint(1,len(sequence_stims)-1) #don't want to rotate
+    #sequence_stims = sequence_stims[rota_ind:]  + sequence_stims[:rota_ind] #don't want to rotate
     sequence_img_ids = []
     sequence_ans = []
-    sequence_stims= np.tile(sequence_stims,4)
+    sequence_stims= np.tile(sequence_stims,16)
     for x in range(0,n_trials):
         sequence_img_ids.append(img_dict[sequence_stims[x]])
         sequence_ans.append(key_dict[sequence_stims[x]])
@@ -503,6 +508,11 @@ iti = .25
 RTclock = core.Clock()
 
 for thisBlock_Loop in Block_Loop:
+    if nBlock != 7:
+        delay = 2;
+    else:
+        delay = 0;
+
     nBlock = nBlock+1
     if (nBlock == 6 or nBlock == 7 or nBlock == 3):
         max_rt = 1.0
@@ -527,8 +537,11 @@ for thisBlock_Loop in Block_Loop:
 
     block_rts = []
     acc_last_block = []
+    n_stimuli = 0
     for thisTrial in trials:
-
+        core.wait(.05)
+        if n_stimuli % 4 == 0 & nBlock != 7:
+            core.wait(1)
         currentLoop = trials
         # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
         if thisTrial != None:
@@ -598,13 +611,14 @@ for thisBlock_Loop in Block_Loop:
                     thisComponent.setAutoDraw(False)
                     win.flip()
 
-            core.wait(iti)
+            #core.wait(iti)
             if endExpNow or event.getKeys(keyList=["escape"]):
                 core.quit()
 
             # refresh the screen
             if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                 win.flip()
+            n_stimuli += 1
 
         # store data for trials (TrialHandler)
         trials.addData('key_response.keys',key_response.keys)
@@ -794,7 +808,7 @@ win.close()
 
 skip_index = 32
 max_lags = 31
-plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.png' %(expInfo['SID'], expName, expInfo['date'], expInfo['Day'])
+plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.png' %(expInfo['SID'], expName, expInfo['date'], expInfo['session'])
 
 
 for i in np.unique(data_out[['block']]):
@@ -847,8 +861,8 @@ for i in np.unique(data_out[['block']]):
 #Save the file locally and in dropbox.
 data_summary = pd.merge(data_summary, data_lags, left_on = 'block', right_on='lag1',left_index = True,right_index = True, how= 'outer')
 data_summary.to_csv(out_sum_fn, index=False)
-summary_dropbox =  '/home/coaxlab/Dropbox/r2d4/behavior/%s_summary_%s_%s_Day_%s.csv' %(expInfo['SID'], expName, expInfo['date'], expInfo['Day'])
-allResp_dropbox =  '/home/coaxlab/Dropbox/r2d4/behavior/%s_allResp_%s_%s_Day_%s.csv' %(expInfo['SID'], expName,  expInfo['date'], expInfo['Day'])
+summary_dropbox =  '/home/coaxlab/Dropbox/r2d4/behavior/%s_summary_%s_%s_Day_%s.csv' %(expInfo['SID'], expName, expInfo['date'], expInfo['session'])
+allResp_dropbox =  '/home/coaxlab/Dropbox/r2d4/behavior/%s_allResp_%s_%s_Day_%s.csv' %(expInfo['SID'], expName,  expInfo['date'], expInfo['session'])
 data_summary.to_csv(summary_dropbox, index=False)
 data_out.to_csv(allResp_dropbox, index=False)
 

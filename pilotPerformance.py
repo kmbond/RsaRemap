@@ -18,7 +18,7 @@ import itertools
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
-expName = 'rsaRemap'
+expName = 'pilotPerformance'
 expInfo = {u'Day': u'',u'session':u'', u'participant': u''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
@@ -30,7 +30,7 @@ session = int(expInfo['session'])
 filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 
 out_all_fn =  _thisDir + os.sep + 'data/%s_%s_%s_%s_responses.csv' %(expName, expInfo['participant'],expInfo['Day'] , expInfo['session'])
-data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'chunk_id'))
+data_out = pd.DataFrame(columns=('nTrials','accuracy'))
 
 
 # An ExperimentHandler isn't essential but helps with data saving
@@ -526,7 +526,10 @@ for thisPractice_loop in practice_loop:
 
     #%Check if threshold performance has been met.
     n_practice_trials +=1
-    if n_practice_trials >20 and (sum(running_accuracy[-20:])/20.0)>.9:
+    current_acc = (sum(running_accuracy[-20:])/20.0)
+    if n_practice_trials >20 and current_acc>.9:
+        data_out.loc[len(data_out)+1]=[n_practice_trials,current_acc]
+        data_out.to_csv(out_all_fn, index=False)
         break
 
 
@@ -660,11 +663,13 @@ for thisPractice_loop in practice_loop:
         if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
             win.flip()
 
+
     #-------Ending Routine "practice"-------
     for thisComponent in practiceComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
     # Store nothing
+
 
 ### End of practice, wait 10 second befor econitnueing.
 t = 0
@@ -678,277 +683,3 @@ InstructionsComponents.append(begin_scan)
 for thisComponent in InstructionsComponents:
     if hasattr(thisComponent, 'status'):
         thisComponent.status = NOT_STARTED
-
-
-#-------Start Routine "Begin the Scan"-------
-continueRoutine = True
-while continueRoutine and routineTimer.getTime() > 0:
-    # get current time
-    t = InstructionsClock.getTime()
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-
-    # *practice_with_help* updates
-    if t >= 0.0 and begin_scan.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        begin_scan.tStart = t  # underestimates by a little under one frame
-        begin_scan.frameNStart = frameN  # exact frame index
-        begin_scan.setAutoDraw(True)
-    if begin_scan.status == STARTED and t >= (0.0 + (5-win.monitorFramePeriod*0.75)): #most of one frame period left
-        begin_scan.setAutoDraw(False)
-        continueRoutine = False
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in InstructionsComponents:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-
-    # check for quit (the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
-        core.quit()
-
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-
-### Begin Scan Acquisition
-# set up handler to look after randomisation of conditions etc
-trials = data.TrialHandler(nReps=1, method='sequential',
-    extraInfo=expInfo, originPath=None,
-    trialList=data.importConditions(u'MM_onsets.csv'),
-    seed=None, name='trials')
-
-
-thisExp.addLoop(trials)  # add the loop to the experiment
-thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
-# abbreviate parameter names if possible (e.g. rgb=thisTrial.rgb)
-if thisTrial != None:
-    for paramName in thisTrial.keys():
-        exec(paramName + '= thisTrial.' + paramName)
-RTclock = core.Clock()
-max_rt = 1
-
-
-##### Wait for scanner trigger key #####
-event.clearEvents(eventType='keyboard')
-
-ScannerKey = event.waitKeys(["^","escape"])
-if endExpNow or "escape" in ScannerKey:
-   core.quit()
-globalClock.reset()
-
-
-
-trial = -1
-for thisTrial in trials:
-    trial = trial+1
-
-    currentLoop = trials
-    # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
-    if thisTrial != None:
-        for paramName in thisTrial.keys():
-            exec(paramName + '= thisTrial.' + paramName)
-
-    fixation.setAutoDraw(True)
-    win.flip()
-
-    #------Prepare to start Routine "trial"-------
-
-    frameN = -1
-    routineTimer.add(2.000000)
-
-    #For Debugging
-    #print globalClock.getTime()
-    #print t_vec[trial]
-    # update component parameters for each repeat
-    while globalClock.getTime() < t_vec[trial]:
-        core.wait(.001)
-        if endExpNow or event.getKeys(keyList=["escape"]):
-            core.quit()
-
-
-    if trial_img != 'image_folder/skip.png':
-        chunk = chunk_dict[trial_img]
-        cor_resp = cor_resp_dict[trial_img]
-        event.clearEvents(eventType='keyboard') #clear after executing each chunk
-        key_response = event.BuilderKeyResponse()  # create an object of type KeyResponse
-        key_response.status = NOT_STARTED
-        onsetTime = globalClock.getTime()
-        for chunk_element,this_cor_resp in zip(chunk, cor_resp):
-
-            fixation.setAutoDraw(False)
-            win.flip()
-            image.setImage(chunk_element)
-
-            # keep track of which components have finished
-            trialComponents = []
-            trialComponents.append(image)
-            trialComponents.append(key_response)
-
-            for thisComponent in trialComponents:
-                if hasattr(thisComponent, 'status'):
-                    thisComponent.status = NOT_STARTED
-
-            #-------Start Routine "trial"-------
-            continueRoutine = True
-            trialClock.reset()  # clock
-            # Print routTimer to verify matches correct onset timings.
-            # print routineTimer.getTime()
-
-            while continueRoutine:
-                t = trialClock.getTime()
-                frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-                # update/draw components on each frame
-
-                # *image* updates
-                if t >= 0.0 and image.status == NOT_STARTED:
-                    # keep track of start time/frame for later
-                    image.tStart = t  # underestimates by a little under one frame
-                    image.frameNStart = frameN  # exact frame index
-                    image.setAutoDraw(True)
-                    #Only grab onset Time if this is the first element in the chunk
-
-                if image.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
-                    image.setAutoDraw(False)
-                    continueRoutine = False
-                # *key_response* updates
-                if t >= 0.0 and key_response.status == NOT_STARTED:
-                    # keep track of start time/frame for later
-                    key_response.tStart = t  # underestimates by a little under one frame
-                    key_response.frameNStart = frameN  # exact frame index
-                    key_response.status = STARTED
-                    # keyboard checking is just starting
-                    key_response.clock.reset()  # now t=0
-
-                if key_response.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
-                    key_response.status = STOPPED
-                    continueRoutine = False
-                if key_response.status == STARTED:
-                    theseKeys = event.getKeys(keyList=['2', '3', '4', '5'])
-                    # check for quit:
-
-                    if "escape" in theseKeys:
-                        endExpNow = True
-                    if len(theseKeys) > 0:  # at least one key was pressed
-
-                        #Check if response was correct:
-                        key_response.keys.extend(theseKeys)  # storing all keys
-                        key_response.rt.append(key_response.clock.getTime())
-                        if (theseKeys[0] == str(this_cor_resp)) or (theseKeys[0] == this_cor_resp):
-                            image.setAutoDraw(False)
-                            continueRoutine = False
-                            win.flip()
-                        else:
-                            image.setAutoDraw(False)
-                            Wrong_1.setAutoDraw(True)
-                            win.flip()
-                            continueRoutine = False
-                # check if all components have finished
-                if not continueRoutine:  # a component has requested a forced-end of Routine
-                    break
-
-                for thisComponent in trialComponents:
-                    if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                        continueRoutine = True
-                        break  # at least one component has not yet finished
-
-                # check for quit (the Esc key)
-                if endExpNow or event.getKeys(keyList=["escape"]):
-                    core.quit()
-
-                # refresh the screen
-                if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-                    win.flip()
-            Wrong_1.setAutoDraw(False)
-            win.flip()
-            core.wait(iti)
-
-        #-------Ending Routine "trial"-------
-        for thisComponent in trialComponents:
-            if hasattr(thisComponent, "setAutoDraw"):
-                thisComponent.setAutoDraw(False)
-        # check responses
-        if key_response.keys in ['', [], None]:  # No response was made
-           key_response.keys=None
-           # was no response the correct answer?!
-           if str(trial_ans).lower() == 'none': key_response.corr = 1  # correct non-response
-           else: key_response.corr = 0  # failed to respond (incorrectly)
-        # store data for trials (TrialHandler)
-        trials.addData('key_response.keys',key_response.keys)
-        trials.addData('key_response.corr', key_response.corr)
-        if key_response.keys != None:  # we had a response
-            trials.addData('key_response.rt', key_response.rt)
-        thisExp.nextEntry()
-        win.flip()
-        #Save Data to output File
-
-        #Change this trail_ans
-        data_out.loc[len(data_out)+1]=[onsetTime,cor_resp_dict[trial_img], str(key_response.keys).strip('[]'), trial_img]
-        data_out.to_csv(out_all_fn, index=False)
-
-    elif trial_img == 'image_folder/skip.png':
-        fixation.setAutoDraw(True)
-        core.wait(0.0)
-    thisExp.nextEntry()
-
-
-# completed all trials
-
-
-#------Prepare to start Routine "End"-------
-t = 0
-EndClock.reset()  # clock
-frameN = -1
-routineTimer.add(1.000000)
-# update component parameters for each repeat
-# keep track of which components have finished
-EndComponents = []
-EndComponents.append(text)
-for thisComponent in EndComponents:
-    if hasattr(thisComponent, 'status'):
-        thisComponent.status = NOT_STARTED
-
-#-------Start Routine "End"-------
-continueRoutine = True
-while continueRoutine and routineTimer.getTime() > 0:
-    # get current time
-    t = EndClock.getTime()
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-
-    # *text* updates
-    if t >= 0.0 and text.status == NOT_STARTED:
-        # keep track of start time/frame for later
-        text.tStart = t  # underestimates by a little under one frame
-        text.frameNStart = frameN  # exact frame index
-        text.setAutoDraw(True)
-    if text.status == STARTED and t >= (0.0 + (1.0-win.monitorFramePeriod*0.75)): #most of one frame period left
-        text.setAutoDraw(False)
-
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in EndComponents:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-
-    # check for quit (the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
-        core.quit()
-
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-#-------Ending Routine "End"-------
-for thisComponent in EndComponents:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-win.close()
-core.quit()

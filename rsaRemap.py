@@ -570,7 +570,15 @@ for thisPractice_loop in practice_loop:
         t = practiceClock.getTime()
         frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
         # update/draw components on each frame
-
+        if t >= 1.25:
+            # keep track of start time/frame for later
+            Practice_response.corr = 0
+            running_accuracy.append(0)
+            image.setAutoDraw(True)
+            Wrong_1.setAutoDraw(True)
+            win.flip()
+            core.wait(.2)
+            continueRoutine = False
         # *image* updates
         if t >= .25 and image.status == NOT_STARTED:
             # keep track of start time/frame for later

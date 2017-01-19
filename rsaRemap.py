@@ -526,7 +526,7 @@ for thisPractice_loop in practice_loop:
 
     #%Check if threshold performance has been met.
     n_practice_trials +=1
-    if n_practice_trials >20 and (sum(running_accuracy[-20:])/20.0)>.9:
+    if n_practice_trials >40 and (sum(running_accuracy[-20:])/20.0)>.9:
         break
 
 

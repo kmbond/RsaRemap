@@ -98,11 +98,6 @@ fixation = visual.ShapeStim(win,
 
 Wrong_1 = visual.Circle(win=win, units = 'pix', radius = 100,lineColor='red', fillColor = 'red')
 
-pause_after_block = visual.TextStim(win=win, ori=0, name='text',
-    text=u'Block %d is completed. Press any key to continue',    font=u'Arial',
-    pos=[0, 0], height=0.1, wrapWidth=None,
-    color=u'white', colorSpace='rgb', opacity=1,
-    depth=0.0)
 
 
 # Initialize components for Routine "End"
@@ -191,6 +186,12 @@ event.clearEvents(eventType='keyboard')
 
 
 for session in range(1,9):
+    pause_text = 'Block %d is completed. Press any key to continue' %(session)
+    pause_after_block = visual.TextStim(win=win, ori=0, name='text',
+        text=pause_text,    font=u'Arial',
+        pos=[0, 0], height=0.1, wrapWidth=None,
+        color=u'white', colorSpace='rgb', opacity=1,
+        depth=0.0)
 
     event.clearEvents(eventType='keyboard')
     #-------Ending Routine "Instructions"-------
@@ -204,12 +205,16 @@ for session in range(1,9):
     resp_dict = resp_dict[session-1]
     resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
 
+    #for practice use this mapping
+    pilot_comp_mapping = {2:'h', 3:'j', 4:'k', 5:'l'}
     #Practice trial handle
     this_practice_dict = {key_map[key]: img_dict[resp_dict[key]] for key in key_map.keys()}
     df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.values()}
     df_practice = pd.DataFrame(data=df_practice)
     df_practice = df_practice[['img_id', 'cor_ans']]
-    practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_session_%s.csv' %(expInfo['participant'], str(session))
+    print df_practice
+    df_practice = df_practice.replace({'cor_ans':pilot_comp_mapping})
+    practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_pilot_session_%s.csv' %(expInfo['participant'], str(session))
     df_practice.to_csv(practiceOnsets_fn, index=False)
 
     # set up handler to look after randomisation of conditions etc
@@ -224,7 +229,7 @@ for session in range(1,9):
     if thisPractice_loop != None:
         for paramName in thisPractice_loop.keys():
             exec(paramName + '= thisPractice_loop.' + paramName)
-    mapping = {2: 'Index ', 3: 'Middle ', 4: 'Ring ', 5:'Little '}
+    mapping = {'h': 'Index ', 'j': 'Middle ', 'k': 'Ring ', 'l':'Little '}
     for thisPractice_loop in practice_loop:
 
         # abbreviate parameter names if possible (e.g. rgb = thisPractice_loop.rgb)
@@ -445,7 +450,7 @@ for session in range(1,9):
         #%Check if threshold performance has been met.
         n_practice_trials +=1
         current_acc = (sum(running_accuracy[-20:])/20.0)
-        if n_practice_trials >20 and current_acc>.9:
+        if n_practice_trials > 80 and current_acc > .90:
             end_time = time.time() - start_time
             data_out.loc[len(data_out)+1]=[n_practice_trials,current_acc, end_time]
             data_out.to_csv(out_all_fn, index=False)
@@ -618,7 +623,7 @@ for session in range(1,9):
         # update/draw components on each frame
 
         # *practice_with_help* updates
-        if t >= 0.0 and pause_after_block3.status == NOT_STARTED:
+        if t >= 0.0 and pause_after_block.status == NOT_STARTED:
             # keep track of start time/frame for later
             pause_after_block.tStart = t  # underestimates by a little under one frame
             pause_after_block.frameNStart = frameN  # exact frame index

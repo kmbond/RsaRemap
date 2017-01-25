@@ -48,7 +48,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(size=(500, 500), fullscr=False, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=(500, 500), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     )
@@ -74,7 +74,7 @@ practice_without_help = visual.TextStim(win=win, ori=0, name='practice_without_h
         depth=0.0)
 
 begin_scan = visual.TextStim(win=win, ori=0, name='begin_scan',
-        text=u'Well done, practice is completed. Now the scan will start where you will perform 4 groups of movements as quickly as you can.',    font=u'Arial',
+        text=u'Well done, practice is completed. Now the scan will start where you will perform a group of 4 movements as quickly as you can.',    font=u'Arial',
         pos=[0, 0], height=0.1, wrapWidth=None,
         color=u'white', colorSpace='rgb', opacity=1,
         depth=0.0)
@@ -526,7 +526,7 @@ for thisPractice_loop in practice_loop:
 
     #%Check if threshold performance has been met.
     n_practice_trials +=1
-    if n_practice_trials >20 and (sum(running_accuracy[-20:])/20.0)>.1:
+    if n_practice_trials >80 and (sum(running_accuracy[-20:])/20.0)>.9:
         break
 
 
@@ -753,6 +753,8 @@ globalClock.reset()
 
 trial = -1
 for thisTrial in trials:
+
+
     trial = trial+1
 
     currentLoop = trials
@@ -774,7 +776,7 @@ for thisTrial in trials:
     #print t_vec[trial]
     # update component parameters for each repeat
     while globalClock.getTime() < t_vec[trial]:
-        print globalClock.getTime()
+
         core.wait(.001)
         if endExpNow or event.getKeys(keyList=["escape"]):
             core.quit()
@@ -787,6 +789,7 @@ for thisTrial in trials:
         key_response = event.BuilderKeyResponse()  # create an object of type KeyResponse
         key_response.status = NOT_STARTED
         onsetTime = globalClock.getTime()
+        print globalClock.getTime()
         for chunk_element,this_cor_resp in zip(chunk, cor_resp):
 
             fixation.setAutoDraw(False)
@@ -819,6 +822,7 @@ for thisTrial in trials:
                     image.tStart = t  # underestimates by a little under one frame
                     image.frameNStart = frameN  # exact frame index
                     image.setAutoDraw(True)
+
                     #Only grab onset Time if this is the first element in the chunk
 
                 if image.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
@@ -908,8 +912,9 @@ for thisTrial in trials:
 
 
 # completed all trials
-
-
+core.wait(3)
+fixation.setAutoDraw(False)
+win.flip()
 #------Prepare to start Routine "End"-------
 t = 0
 EndClock.reset()  # clock
@@ -956,6 +961,7 @@ while continueRoutine and routineTimer.getTime() > 0:
     # refresh the screen
     if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
         win.flip()
+
 
 #-------Ending Routine "End"-------
 for thisComponent in EndComponents:

@@ -204,10 +204,10 @@ while not isDone:
     ons = np.zeros((6,8))
     for c in trial_types:
         a = np.where(vec==c)[0]
-        ons[:,c-2] = a*2
+        ons[:,c-1] = a*2
         for indx in range(0, len(a)):
             name = a[indx]
-            X[a[indx]][c-2]= 1
+            X[a[indx]][c-1]= 1
 
     df=pd.DataFrame(X)
     cxy = df.corr()
@@ -526,7 +526,7 @@ for thisPractice_loop in practice_loop:
 
     #%Check if threshold performance has been met.
     n_practice_trials +=1
-    if n_practice_trials >40 and (sum(running_accuracy[-20:])/20.0)>.9:
+    if n_practice_trials >20 and (sum(running_accuracy[-20:])/20.0)>.1:
         break
 
 
@@ -572,13 +572,13 @@ for thisPractice_loop in practice_loop:
         # update/draw components on each frame
         if t >= 1.25:
             # keep track of start time/frame for later
-            Practice_response.corr = 0
-            running_accuracy.append(0)
-            image.setAutoDraw(True)
-            Wrong_1.setAutoDraw(True)
-            win.flip()
-            core.wait(.2)
-            continueRoutine = False
+                Practice_response.corr = 0
+                running_accuracy.append(0)
+                image.setAutoDraw(True)
+                Wrong_1.setAutoDraw(True)
+                win.flip()
+                core.wait(.2)
+                continueRoutine = False
         # *image* updates
         if t >= .25 and image.status == NOT_STARTED:
             # keep track of start time/frame for later
@@ -774,6 +774,7 @@ for thisTrial in trials:
     #print t_vec[trial]
     # update component parameters for each repeat
     while globalClock.getTime() < t_vec[trial]:
+        print globalClock.getTime()
         core.wait(.001)
         if endExpNow or event.getKeys(keyList=["escape"]):
             core.quit()
@@ -871,9 +872,11 @@ for thisTrial in trials:
                 # refresh the screen
                 if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                     win.flip()
+
             Wrong_1.setAutoDraw(False)
             win.flip()
             core.wait(iti)
+
 
         #-------Ending Routine "trial"-------
         for thisComponent in trialComponents:

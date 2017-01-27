@@ -116,8 +116,6 @@ key_map = {'I':2, 'M':3, 'R':4, 'P':5}
 img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C': 'image_folder/stim_4.png', 'D': 'image_folder/stim_5.png'}
 
 
-
-
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
 routineTimer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine
@@ -209,6 +207,7 @@ for session in range(1,9):
     pilot_comp_mapping = {2:'h', 3:'j', 4:'k', 5:'l'}
     #Practice trial handle
     this_practice_dict = {key_map[key]: img_dict[resp_dict[key]] for key in key_map.keys()}
+    print this_practice_dict
     df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.values()}
     df_practice = pd.DataFrame(data=df_practice)
     df_practice = df_practice[['img_id', 'cor_ans']]

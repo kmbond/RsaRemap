@@ -38,13 +38,16 @@ filename = _thisDir + os.sep + 'data/%s_%s_%s_group_%s' %(expInfo['participant']
 # Output summary data and analyzed files
 out_sum_fn =  _thisDir + os.sep +'data/%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'],  expInfo['group (c or r)'])
 out_all_fn =  _thisDir + os.sep +'data/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'],   expInfo['group (c or r)'])
-
 data_out = pd.DataFrame(columns=('block','response','rt', 'type', 'keyPressed', 'correctKey'))
+
+#Learning mapping data files.
+practice_out_fn =  _thisDir + os.sep +'data/%s_practice_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'],   expInfo['group (c or r)'])
+practice_data_out = pd.DataFrame(columns=('nTrials','accuracy', 'time'))
 
 #### Generate Stimuli ####
 keys = [2, 3, 4, 5]
 img_filenames = ['image_folder/stim_2.png', 'image_folder/stim_3.png', 'image_folder/stim_4.png', 'image_folder/stim_5.png']
-key_name = ['h', 'j', 'k', 'l']
+key_name = ['j', 'k', 'l', ';']
 img_dicts = [dict(zip(kperm, img_filenames)) for kperm in itertools.permutations(keys, len(img_filenames))]
 key_dicts =  [dict(zip(kperm, key_name)) for kperm in itertools.permutations(keys, len(key_name))]
 map_perm = [13,4,8,23,16,7,21,13,1,23,8,16,21,7,4]
@@ -57,18 +60,17 @@ if  expInfo['group (c or r)'] == 'c':
 if  expInfo['group (c or r)'] == 'r':
     img_dict = img_dicts[0]
     key_dict = key_dicts[map_perm[session-1]]
-
+print key_dict
+print img_dict
 #64 chunks total
 #chunkSize = 4
 #16 repititions of each chunk
 #no pause after first cue during first 7 blocks
-key_map = {2:'h', 3:'j', 4:'k', 5:'l'}
+key_map = {2:'j', 3:'k', 4:'l', 5:';'}
 
 
 this_practice_dict = {key_dict[key]: img_dict[key] for key in key_map.keys()}
-
 df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.values()}
-
 df_practice = pd.DataFrame(data=df_practice)
 df_practice = df_practice[['img_id', 'cor_ans']]
 practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_session_%s.csv' %(expInfo['participant'], expInfo['session'])
@@ -156,7 +158,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(size=[400,400], fullscr=True, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=[400,400], fullscr=False, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True
     )
@@ -172,7 +174,7 @@ else:
 # Initialize components for Routine "Instructions"
 InstructionsClock = core.Clock()
 instrText = visual.TextStim(win=win, ori=0, name='instrText',
-    text=u'In this experiment, you will see a series of images displayed on the screen. Each image corresponds to a unique finger movement (index, middle, ring, pinky). Position your index finger on \'h\', your middle finger on \'j\',your ring on \'k\' and your pinky on \'l\'. \n Before starting, you will learn the mapping of each image to key press. ',    font=u'Arial',
+    text=u'In this experiment, you will see a series of images displayed on the screen. Each image corresponds to a unique finger movement (index, middle, ring, pinky). \n Position your index finger on \'h\', your middle finger on \'j\',your ring on \'k\' and your pinky on \'l\'. \n Before starting, you will learn the mapping of each image to key press. Press any key to continue.',    font=u'Arial',
     pos=[0, 0], height=0.1, wrapWidth=None,
     color=u'white', colorSpace='rgb', opacity=1,
     depth=0.0)
@@ -387,7 +389,7 @@ thisPractice_loop = practice_loop.trialList[0]  # so we can initialise stimuli w
 if thisPractice_loop != None:
     for paramName in thisPractice_loop.keys():
         exec(paramName + '= thisPractice_loop.' + paramName)
-mapping = {'h': 'Index ','j': 'Middle ', 'k': 'Ring ', 'l':'Little '}
+mapping = {'j': 'Index ','k': 'Middle ', 'l': 'Ring ', ';':'Little '}
 for thisPractice_loop in practice_loop:
 
     # abbreviate parameter names if possible (e.g. rgb = thisPractice_loop.rgb)
@@ -451,7 +453,7 @@ for thisPractice_loop in practice_loop:
             Practice_response.clock.reset()  # now t=0
             event.clearEvents(eventType='keyboard')
         if Practice_response.status == STARTED:
-            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','h', 'j', 'k', 'l'])
+            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','j', 'k', 'l', ';'])
 
             # check for quit:
             if "escape" in theseKeys:
@@ -601,12 +603,14 @@ running_accuracy = []
 n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
-    break
+    #break # remove this break to keep practice
     #%Check if threshold performance has been met.
     n_practice_trials +=1
     current_acc = (sum(running_accuracy[-20:])/20.0)
     if n_practice_trials > 80 and current_acc > .90:
         end_time = time.time() - start_time
+        practice_data_out.loc[len(data_out)+1]=[n_practice_trials,current_acc, end_time]
+        practice_data_out.to_csv(practice_out_fn, index=False)
         break
 
     # abbreviate parameter names if possible (e.g. rgb = thisPractice_loop.rgb)
@@ -673,7 +677,7 @@ for thisPractice_loop in practice_loop:
             Practice_response.clock.reset()  # now t=0
             event.clearEvents(eventType='keyboard')
         if Practice_response.status == STARTED:
-            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','h', 'j', 'k', 'l'])
+            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','j', 'k', 'l', ';'])
 
             # check for quit:
             if "escape" in theseKeys:
@@ -892,7 +896,7 @@ for thisBlock_Loop in Block_Loop:
             win.flip()
             RTclock.reset()
             event.clearEvents(eventType='keyboard')
-            theseKeys = event.waitKeys(max_rt,('h','j','k','l'), timeStamped = RTclock)
+            theseKeys = event.waitKeys(max_rt,('j','k','l',';'), timeStamped = RTclock)
 
             if theseKeys is None:
                 key_response.corr = 0

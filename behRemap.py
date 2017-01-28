@@ -47,7 +47,7 @@ practice_data_out = pd.DataFrame(columns=('nTrials','accuracy', 'time'))
 #### Generate Stimuli ####
 keys = [2, 3, 4, 5]
 img_filenames = ['image_folder/stim_2.png', 'image_folder/stim_3.png', 'image_folder/stim_4.png', 'image_folder/stim_5.png']
-key_name = ['j', 'k', 'l', ';']
+key_name = ['j', 'k', 'l', 'semicolon']
 img_dicts = [dict(zip(kperm, img_filenames)) for kperm in itertools.permutations(keys, len(img_filenames))]
 key_dicts =  [dict(zip(kperm, key_name)) for kperm in itertools.permutations(keys, len(key_name))]
 map_perm = [13,4,8,23,16,7,21,13,1,23,8,16,21,7,4]
@@ -60,23 +60,21 @@ if  expInfo['group (c or r)'] == 'c':
 if  expInfo['group (c or r)'] == 'r':
     img_dict = img_dicts[0]
     key_dict = key_dicts[map_perm[session-1]]
-print key_dict
-print img_dict
+
 #64 chunks total
 #chunkSize = 4
 #16 repititions of each chunk
 #no pause after first cue during first 7 blocks
-key_map = {2:'j', 3:'k', 4:'l', 5:';'}
+key_map = {2:'x', 3:'x', 4:'x', 5:'x'}
 
-
-this_practice_dict = {key_dict[key]: img_dict[key] for key in key_map.keys()}
+this_practice_dict = {key: img_dict[key] for key in key_map.keys()}
+#this_practice_dict = {key_dict[key]: img_dict[key] for key in key_map.keys()}
 df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.values()}
 df_practice = pd.DataFrame(data=df_practice)
 df_practice = df_practice[['img_id', 'cor_ans']]
+df_practice = df_practice.replace({'cor_ans':key_dict})
 practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_session_%s.csv' %(expInfo['participant'], expInfo['session'])
 df_practice.to_csv(practiceOnsets_fn, index=False)
-
-
 
 n_trials = 16*16 # number of trials within a block should be 256
 dfStims = pd.DataFrame()
@@ -158,7 +156,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(size=[400,400], fullscr=False, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=[400,400], fullscr=True, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True
     )
@@ -389,7 +387,7 @@ thisPractice_loop = practice_loop.trialList[0]  # so we can initialise stimuli w
 if thisPractice_loop != None:
     for paramName in thisPractice_loop.keys():
         exec(paramName + '= thisPractice_loop.' + paramName)
-mapping = {'j': 'Index ','k': 'Middle ', 'l': 'Ring ', ';':'Little '}
+mapping = {'j': 'Index ','k': 'Middle ', 'l': 'Ring ', 'semicolon':'Little '}
 for thisPractice_loop in practice_loop:
 
     # abbreviate parameter names if possible (e.g. rgb = thisPractice_loop.rgb)
@@ -453,12 +451,14 @@ for thisPractice_loop in practice_loop:
             Practice_response.clock.reset()  # now t=0
             event.clearEvents(eventType='keyboard')
         if Practice_response.status == STARTED:
-            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','j', 'k', 'l', ';'])
+            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','j', 'k', 'l', 'semicolon'])
+
 
             # check for quit:
             if "escape" in theseKeys:
                 endExpNow = True
             if len(theseKeys) > 0:  # at least one key was pressed
+
                 if Practice_response.keys == []:
                     Practice_response.keys = theseKeys[0]  # just the last key pressed
 
@@ -603,6 +603,7 @@ running_accuracy = []
 n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
+    
     #break # remove this break to keep practice
     #%Check if threshold performance has been met.
     n_practice_trials +=1
@@ -677,7 +678,7 @@ for thisPractice_loop in practice_loop:
             Practice_response.clock.reset()  # now t=0
             event.clearEvents(eventType='keyboard')
         if Practice_response.status == STARTED:
-            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','j', 'k', 'l', ';'])
+            theseKeys = event.getKeys(keyList=['2', '3', '4', '5','j', 'k', 'l', 'semicolon'])
 
             # check for quit:
             if "escape" in theseKeys:
@@ -896,7 +897,7 @@ for thisBlock_Loop in Block_Loop:
             win.flip()
             RTclock.reset()
             event.clearEvents(eventType='keyboard')
-            theseKeys = event.waitKeys(max_rt,('j','k','l',';'), timeStamped = RTclock)
+            theseKeys = event.waitKeys(max_rt,('j','k','l','semicolon'), timeStamped = RTclock)
 
             if theseKeys is None:
                 key_response.corr = 0

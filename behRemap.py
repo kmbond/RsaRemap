@@ -603,7 +603,7 @@ running_accuracy = []
 n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
-    
+
     #break # remove this break to keep practice
     #%Check if threshold performance has been met.
     n_practice_trials +=1
@@ -1172,8 +1172,8 @@ for i in np.unique(data_out[['block']]):
 #Save the file locally and in dropbox.
 data_summary = pd.merge(data_summary, data_lags, left_on = 'block', right_on='lag1',left_index = True,right_index = True, how= 'outer')
 data_summary.to_csv(out_sum_fn, index=False)
-summary_dropbox =  '/home/coaxlab/Dropbox/modChunk/behavior/%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
-allResp_dropbox =  '/home/coaxlab/Dropbox/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
+summary_dropbox =  '~/Dropbox/modChunk/behavior/%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
+allResp_dropbox =  '~/Dropbox/modChunk/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
 data_summary.to_csv(summary_dropbox, index=False)
 data_out.to_csv(allResp_dropbox, index=False)
 data_out.to_csv(out_all_fn, index=False)

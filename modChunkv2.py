@@ -31,7 +31,7 @@ dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
-expInfo['group (c or r)'] = r
+expInfo['group (c or r)'] = 'r'
 session = int(expInfo['session'])
 
 
@@ -827,6 +827,7 @@ iti = .25
 RTclock = core.Clock()
 
 for thisBlock_Loop in Block_Loop:
+    break
     if nBlock != 7 or nBlock != 6:
         delay = 2;
     else:

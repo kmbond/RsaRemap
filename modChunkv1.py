@@ -31,7 +31,7 @@ dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
-expInfo['group (c or r)'] = c
+expInfo['group (c or r)'] = 'c'
 session = int(expInfo['session'])
 
 
@@ -606,8 +606,8 @@ running_accuracy = []
 n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
+    
 
-    #break # remove this break to keep practice
     #%Check if threshold performance has been met.
     n_practice_trials +=1
     current_acc = (sum(running_accuracy[-20:])/20.0)
@@ -827,6 +827,7 @@ iti = .25
 RTclock = core.Clock()
 
 for thisBlock_Loop in Block_Loop:
+
     if nBlock != 7 or nBlock != 6:
         delay = 2;
     else:

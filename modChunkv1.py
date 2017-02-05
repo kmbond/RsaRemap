@@ -5,6 +5,7 @@ from __future__ import division
 from psychopy import visual, core, data, event, logging, gui
 from psychopy.constants import *
 
+import sys
 import pandas as pd
 import numpy as np
 from numpy import sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray
@@ -25,13 +26,13 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'behRemap'
-expInfo = {u'session':u'', u'participant': u'', u'group (c or r)': u''}
+expInfo = {u'session':u'', u'participant': u''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
+expInfo['group (c or r)'] = c
 session = int(expInfo['session'])
-
 
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc

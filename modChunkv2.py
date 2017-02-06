@@ -607,7 +607,7 @@ n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
 
-    #break # remove this break to keep practice
+
     #%Check if threshold performance has been met.
     n_practice_trials +=1
     current_acc = (sum(running_accuracy[-20:])/20.0)
@@ -827,15 +827,13 @@ iti = .25
 RTclock = core.Clock()
 
 for thisBlock_Loop in Block_Loop:
-    break
+    nBlock = nBlock+1
+
     if nBlock != 7 or nBlock != 6:
-        delay = 2;
+        delay = 1;
     else:
         delay = 0;
 
-    nBlock = nBlock+1
-    if (nBlock == 6 or nBlock == 7 or nBlock == 3):
-        max_rt = 1.0
 
     currentLoop = Block_Loop
     # abbreviate parameter names if possible (e.g. rgb = thisBlock_Loop.rgb)
@@ -860,8 +858,8 @@ for thisBlock_Loop in Block_Loop:
     n_stimuli = 0
     for thisTrial in trials:
         core.wait(.05)
-        if n_stimuli % 4 == 0 & nBlock != 7:
-            core.wait(1)
+        if n_stimuli % 4 == 0:
+            core.wait(delay)
         currentLoop = trials
         # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
         if thisTrial != None:
@@ -1114,7 +1112,7 @@ for thisComponent in End_ExperimentComponents:
 
 
 #build summary statistics file
-lag_names = ['lag' + str(i) for i in  range(1,32)]
+lag_names = ['lag' + str(i) for i in  range(1,16)]
 data_lags = pd.DataFrame(columns = lag_names)
 sum_names = ['block', 'accuracy', 'rt_all', 'rt_cor', 'sdAcc', 'sdRT', 'chunkSize']
 data_summary = pd.DataFrame(columns = (sum_names))
@@ -1154,7 +1152,7 @@ for i in np.unique(data_out[['block']]):
     x = np.linspace(1,y.size,y.size)
     x = np.vstack([x,np.ones(len(x))]).T
     result = sm.OLS(y, x).fit()
-    R = result.reparticipant
+    R = result.resid
 
     acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, confint=None, qstat=True, fft=False, alpha=0.05)
     lags = acfResults[0]

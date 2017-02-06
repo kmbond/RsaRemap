@@ -1121,8 +1121,8 @@ data_summary = pd.DataFrame(columns = (sum_names))
 
 win.close()
 
-skip_index = 32
-max_lags = 31
+skip_index = 16
+max_lags = 15
 plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.png' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'])
 
 
@@ -1156,12 +1156,12 @@ for i in np.unique(data_out[['block']]):
     result = sm.OLS(y, x).fit()
     R = result.reparticipant
 
-    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=31, confint=None, qstat=True, fft=False, alpha=0.05)
+    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, confint=None, qstat=True, fft=False, alpha=0.05)
     lags = acfResults[0]
     lags = lags[1:] #don't care about first lag always 1
     data_lags.loc[i] = lags
 
-    x = range(1,32)
+    x = range(1,16)
     y = acfResults[0]
     y = y[1:].T
     error = acfResults[1]
@@ -1177,7 +1177,7 @@ for i in np.unique(data_out[['block']]):
 data_summary = pd.merge(data_summary, data_lags, left_on = 'block', right_on='lag1',left_index = True,right_index = True, how= 'outer')
 data_summary.to_csv(out_sum_fn, index=False)
 summary_dropbox =  '~/Dropbox/modChunk/behavior/%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
-allResp_dropbox =  '~/Dropbox/modChunk/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
+allResp_dropbox =  '~/Dropbox/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
 data_summary.to_csv(summary_dropbox, index=False)
 data_out.to_csv(allResp_dropbox, index=False)
 data_out.to_csv(out_all_fn, index=False)

@@ -13,7 +13,7 @@ from numpy.random import random, randint, normal, shuffle
 import itertools
 
 import os
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels
@@ -828,12 +828,9 @@ RTclock = core.Clock()
 
 for thisBlock_Loop in Block_Loop:
     nBlock = nBlock+1
-
-    if nBlock != 7 or nBlock != 6:
-        delay = 1;
-    else:
-        delay = 0;
-
+    delay = 1
+    if nBlock == 7 or nBlock == 6:
+        delay = 0
 
     currentLoop = Block_Loop
     # abbreviate parameter names if possible (e.g. rgb = thisBlock_Loop.rgb)
@@ -1154,7 +1151,7 @@ for i in np.unique(data_out[['block']]):
     result = sm.OLS(y, x).fit()
     R = result.resid
 
-    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, confint=None, qstat=True, fft=False, alpha=0.05)
+    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, qstat=True, fft=False, alpha=0.05)
     lags = acfResults[0]
     lags = lags[1:] #don't care about first lag always 1
     data_lags.loc[i] = lags

@@ -13,7 +13,7 @@ from numpy.random import random, randint, normal, shuffle
 import itertools
 
 import os
-import statsmodels.formula.api as sm
+import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels
@@ -828,11 +828,10 @@ RTclock = core.Clock()
 
 for thisBlock_Loop in Block_Loop:
     nBlock = nBlock+1
+    delay = 1
+    if nBlock == 7 or nBlock == 6:
+        delay = 0
 
-    if nBlock != 7 or nBlock != 6:
-        delay = 1;
-    else:
-        delay = 0;
 
 
     currentLoop = Block_Loop

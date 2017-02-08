@@ -88,25 +88,16 @@ def genRandom(n_trials):
     random_stims = []
     random_img_ids = []
     random_ans = []
-    #Create vector of chunks:
-
-    for x in range(0,int(n_trials/4)):
+    for x in range(0,n_trials):
         if len(random_stims) == 0:
-            random_stims.append(randint(0,4))
+            random_stims.append(randint(2,6))
         elif len(random_stims) > 0:
-            val = randint(0,4)
+            val = randint(2,6)
             while val == random_stims[x-1]:
-                val = randint(0,4)
+                val = randint(2,6)
             random_stims.append(val)
-
-    random_order_chunk = []
-    for chunk in random_stims:
-        random_order_chunk.append(chunks[chunk])
-
-    for chunk in random_order_chunk:
-        for chunk_elem in chunk:
-            random_img_ids.append(img_dict[chunk_elem])
-            random_ans.append(key_dict[chunk_elem])
+        random_img_ids.append(img_dict[random_stims[x]])
+        random_ans.append(key_dict[random_stims[x]])
     random_img_ids = np.asarray(random_img_ids)
     random_ans= np.asarray(random_ans)
     return (random_img_ids, random_ans)

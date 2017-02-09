@@ -597,7 +597,7 @@ running_accuracy = []
 n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
-
+    
 
     #%Check if threshold performance has been met.
     n_practice_trials +=1

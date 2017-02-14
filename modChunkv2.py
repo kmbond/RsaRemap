@@ -597,7 +597,7 @@ running_accuracy = []
 n_practice_trials = 0
 start_time = time.time()
 for thisPractice_loop in practice_loop:
-    
+
 
     #%Check if threshold performance has been met.
     n_practice_trials +=1
@@ -1144,7 +1144,7 @@ for i in np.unique(data_out[['block']]):
     result = sm.OLS(y, x).fit()
     R = result.resid
 
-    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, confint=None, qstat=True, fft=False, alpha=0.05)
+    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, qstat=True, fft=False, alpha=0.05)
     lags = acfResults[0]
     lags = lags[1:] #don't care about first lag always 1
     data_lags.loc[i] = lags

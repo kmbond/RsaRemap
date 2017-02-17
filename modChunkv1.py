@@ -1109,7 +1109,7 @@ win.close()
 
 skip_index = 16
 max_lags = 15
-plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.png' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'])
+plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.svg' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'])
 
 
 for i in np.unique(data_out[['block']]):
@@ -1162,8 +1162,9 @@ for i in np.unique(data_out[['block']]):
 #Save the file locally and in dropbox.
 data_summary = pd.merge(data_summary, data_lags, left_on = 'block', right_on='lag1',left_index = True,right_index = True, how= 'outer')
 data_summary.to_csv(out_sum_fn, index=False)
-summary_dropbox =  '~/Dropbox/modChunk/behavior/%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
-allResp_dropbox =  '~/Dropbox/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
+real_path = os.path.expanduser('~/Dropbox/modChunk/behavior/')
+summary_dropbox =  real_path + '%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
+allResp_dropbox =  real_path + '~/Dropbox/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
 data_summary.to_csv(summary_dropbox, index=False)
 data_out.to_csv(allResp_dropbox, index=False)
 data_out.to_csv(out_all_fn, index=False)

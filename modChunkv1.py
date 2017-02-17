@@ -1164,7 +1164,7 @@ data_summary = pd.merge(data_summary, data_lags, left_on = 'block', right_on='la
 data_summary.to_csv(out_sum_fn, index=False)
 real_path = os.path.expanduser('~/Dropbox/modChunk/behavior/')
 summary_dropbox =  real_path + '%s_summary_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
-allResp_dropbox =  real_path + '~/Dropbox/modChunk/behavior/%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
+allResp_dropbox =  real_path + '%s_allResp_%s_%s_session_%s_group_%s.csv' %(expInfo['participant'], expName,  expInfo['date'], expInfo['session'], expInfo['group (c or r)'])
 data_summary.to_csv(summary_dropbox, index=False)
 data_out.to_csv(allResp_dropbox, index=False)
 data_out.to_csv(out_all_fn, index=False)

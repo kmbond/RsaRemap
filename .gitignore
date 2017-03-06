@@ -8,3 +8,5 @@ data
 #files that are written each run
 behavior_blocks.csv
 behavior_stimuli.csv
+
+.DS_Store

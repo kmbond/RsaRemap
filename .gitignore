@@ -1,1 +1,10 @@
+#data dir
 data
+.ipynb_checkpoints
+
+#any development notebooks
+*.ipynb
+
+#files that are written each run
+behavior_blocks.csv
+behavior_stimuli.csv

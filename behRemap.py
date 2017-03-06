@@ -113,7 +113,7 @@ def genRandom(n_trials):
 #Generate Sequence Ordering
 def genSequence(n_trials):
     #Generate Sequence Stimuli Ordering.
-    sequence_stims = [2,3,4,2,4,5,3,5,3,2,4,3,5,4,2,4]
+    sequence_stims = [2,3,5,2,4,5,3,5,3,2,4,3,5,4,2,4]
     #rota_ind = randint(1,len(sequence_stims)-1) #don't want to rotate
     #sequence_stims = sequence_stims[rota_ind:]  + sequence_stims[:rota_ind] #don't want to rotate
     sequence_img_ids = []

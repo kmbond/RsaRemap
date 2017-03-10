@@ -267,7 +267,8 @@ for session in range(1,9):
         #-------Start Routine "practice"-------
         continueRoutine = True
         while continueRoutine and routineTimer.getTime() > 0:
-
+            if n_stimuli % 4 == 0:
+                core.wait(delay)
             practiceFeedback.setAutoDraw(True)
 
             # get current time
@@ -444,8 +445,13 @@ for session in range(1,9):
     running_accuracy = []
     n_practice_trials = 0
     start_time = time.time()
+    n_stimuli = 0
+    delay = 1
     for thisPractice_loop in practice_loop:
 
+        if n_stimuli % 4 == 0:
+            core.wait(delay)
+        n_stimuli += 1
         #%Check if threshold performance has been met.
         n_practice_trials +=1
         current_acc = (sum(running_accuracy[-20:])/20.0)

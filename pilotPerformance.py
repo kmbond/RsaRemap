@@ -21,7 +21,7 @@ _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
 
 expName = 'pilotPerformance'
-expInfo = {u'Day': u'', u'participant': u''}
+expInfo = {u'participant': u''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
@@ -30,7 +30,7 @@ expInfo['expName'] = expName
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 
-out_all_fn =  _thisDir + os.sep + 'data/%s_Day_%s_SID_%s_responses.csv' %(expName, expInfo['participant'],expInfo['Day'])
+out_all_fn =  _thisDir + os.sep + 'data/%s__SID_%s_responses.csv' %(expName, expInfo['participant'])
 data_out = pd.DataFrame(columns=('nTrials','accuracy', 'time'))
 
 
@@ -184,6 +184,7 @@ event.clearEvents(eventType='keyboard')
 
 
 for session in range(1,9):
+    n_stimuli = 0
     pause_text = 'Block %d is completed. Press any key to continue' %(session)
     pause_after_block = visual.TextStim(win=win, ori=0, name='text',
         text=pause_text,    font=u'Arial',
@@ -266,9 +267,9 @@ for session in range(1,9):
 
         #-------Start Routine "practice"-------
         continueRoutine = True
+
         while continueRoutine and routineTimer.getTime() > 0:
-            if n_stimuli % 4 == 0:
-                core.wait(delay)
+
             practiceFeedback.setAutoDraw(True)
 
             # get current time

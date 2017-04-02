@@ -17,7 +17,7 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels
-
+import fnmatch
 import time
 
 # Ensure that relative paths start from the same directory as this script
@@ -26,14 +26,20 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'behRemap'
-expInfo = {u'session':u'', u'participant': u''}
+expInfo = {u'participant': u''}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False: core.quit()  # user pressed cancel
 expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
 expInfo['group (c or r)'] = 'c'
-session = int(expInfo['session'])
 
+#Count how many days this subject has completed:
+current_session_count = []
+for file in os.listdir(_thisDir+os.sep + 'data'):
+    if fnmatch.fnmatch(file, '*summary*.csv'):
+        current_session_count.append(file)
+expInfo['session'] = len(current_session_count) + 1
+session = int(expInfo['session'])
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s_group_%s' %(expInfo['participant'], expName, expInfo['date'], expInfo['group (c or r)'])
@@ -150,7 +156,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(size=[400,400], fullscr=True, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=[400,400], fullscr=False, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True
     )

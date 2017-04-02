@@ -32,6 +32,13 @@ filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName
 out_all_fn =  _thisDir + os.sep + 'data/%s_%s_%s_%s_responses.csv' %(expName, expInfo['participant'],expInfo['Day'] , expInfo['session'])
 data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'chunk_id'))
 
+# Create random random permtuation of [1,8] so that each subject starts with random presentation of the resp dictionaries, only for the first session
+this_subject_mappings_fn =  _thisDir + os.sep + 'data/%s_this_subject_mapping_day_%s.csv' %(expInfo['participant'], expInfo['Day'])
+if session == 1:
+    this_subject_mappings = pd.DataFrame(data = np.random.permutation(8))
+    this_subject_mappings.to_csv(this_subject_mappings_fn, index=False)
+this_day_mapping = pd.read_csv(this_subject_mappings_fn)
+
 
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
@@ -48,7 +55,7 @@ endExpNow = False  # flag for 'escape' or other condition => quit the exp
 # Start Code - component code to be run before the window creation
 
 # Setup the Window
-win = visual.Window(size=(500, 500), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=(500, 500), fullscr=False, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     )
@@ -129,7 +136,7 @@ img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C':
 
 #This dict changes each run.
 resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'M':'C' ,'R':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'M':'B', 'R':'C' ,'I':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
-resp_dict = resp_dict[session-1]
+resp_dict = resp_dict[this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
 resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
 
 #Practice trial handle

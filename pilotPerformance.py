@@ -63,7 +63,7 @@ else:
 # Initialize components for Routine "Instructions"
 InstructionsClock = core.Clock()
 practice_with_help = visual.TextStim(win=win, ori=0, name='practice_with_help',
-    text=u'Practice trails are about to begin. Ensure that you can comfortably press each button.',    font=u'Arial',
+    text=u'Practice trials are about to begin. Ensure that you can comfortably press each button.',    font=u'Arial',
     pos=[0, 0], height=0.1, wrapWidth=None,
     color=u'white', colorSpace='rgb', opacity=1,
     depth=0.0)
@@ -446,13 +446,13 @@ for session in range(1,9):
     running_accuracy = []
     n_practice_trials = 0
     start_time = time.time()
-    n_stimuli = 0
+
     delay = 1
     for thisPractice_loop in practice_loop:
 
-        if n_stimuli % 4 == 0:
+        if n_practice_trials % 4 == 0:
             core.wait(delay)
-        n_stimuli += 1
+
         #%Check if threshold performance has been met.
         n_practice_trials +=1
         current_acc = (sum(running_accuracy[-20:])/20.0)
@@ -476,27 +476,21 @@ for session in range(1,9):
 
         # update component parameters for each repeat
         image.setImage(img_id)
-        Practice_response = event.BuilderKeyResponse()  # create an object of type KeyResponse
+        Practice_response = event.BuilderKeyResponse()
         Practice_response.status = NOT_STARTED
-        # keep track of which components have finished
         practiceComponents = []
         practiceComponents.append(image)
         practiceComponents.append(Practice_response)
         practiceComponents.append(Wrong_1)
-        #eplicit_instruction = mapping[cor_ans]
-        #practiceFeedback = visual.TextStim(win=win, ori=0, name='text_4',text=eplicit_instruction,font=u'Arial', pos=[0, -.6], height=0.1, wrapWidth=None, color=u'white', colorSpace='rgb', opacity=1,depth=0.0)
-        #practiceComponents.append(practiceFeedback)
         practiceClock.reset()
+
         for thisComponent in practiceComponents:
             if hasattr(thisComponent, 'status'):
                 thisComponent.status = NOT_STARTED
 
-        #-------Start Routine "practice"-------
+
         continueRoutine = True
         while continueRoutine and routineTimer.getTime() > 0:
-
-            #practiceFeedback.setAutoDraw(True)
-
             # get current time
             t = practiceClock.getTime()
             frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
@@ -533,17 +527,13 @@ for session in range(1,9):
                     endExpNow = True
                 if len(theseKeys) > 0:  # at least one key was pressed
                     if Practice_response.keys == []:
-                        Practice_response.keys = theseKeys[0]  # just the last key pressed
-
-
+                        Practice_response.keys = theseKeys[0]
                         Practice_response.rt = Practice_response.clock.getTime()
-                        # was this 'correct'?
+
                         if (Practice_response.keys == str(cor_ans)) or (Practice_response.keys == cor_ans):
                             Practice_response.corr = 1
                             continueRoutine = False
                             running_accuracy.append(1)
-
-
                         else:
                             Practice_response.corr = 0
                             running_accuracy.append(0)
@@ -552,8 +542,6 @@ for session in range(1,9):
                             win.flip()
                             core.wait(.2)
                             continueRoutine = False
-                        #practiceFeedback.setAutoDraw(True)
-
 
             # check if all components have finished
             if not continueRoutine:  # a component has requested a forced-end of Routine
@@ -603,7 +591,7 @@ for session in range(1,9):
         for thisComponent in practiceComponents:
             if hasattr(thisComponent, "setAutoDraw"):
                 thisComponent.setAutoDraw(False)
-        # Store nothing
+        win.flip()
 
     #Add pause here:
     t = 0
@@ -668,7 +656,7 @@ for session in range(1,9):
 
 
 
-### End of practice, wait 10 second befor econitnueing.
+### End of practice, wait 10 second befor continuing.
 t = 0
 InstructionsClock.reset()  # clock
 frameN = -1

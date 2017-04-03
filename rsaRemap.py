@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.io
 import itertools
-
+debug = 1
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
@@ -30,7 +30,7 @@ session = int(expInfo['session'])
 filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 
 out_all_fn =  _thisDir + os.sep + 'data/%s_%s_Day%s_Session%s_responses.csv' %(expName, expInfo['participant'],expInfo['Day'] , expInfo['session'])
-data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'chunk_id'))
+data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'chunkID', 'responseTimes'))
 
 # Create random random permtuation of [1,8] so that each subject starts with random presentation of the resp dictionaries, only for the first session
 this_subject_mappings_fn =  _thisDir + os.sep + 'data/%s_this_subject_mapping_day_%s.csv' %(expInfo['participant'], expInfo['Day'])
@@ -51,8 +51,6 @@ logFile = logging.LogFile(filename+'.log', level=logging.EXP)
 logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
 
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
-
-# Start Code - component code to be run before the window creation
 
 # Setup the Window
 win = visual.Window(size=(500, 500), fullscr=False, screen=0, allowGUI=False, allowStencil=False,
@@ -532,6 +530,8 @@ running_accuracy = []
 n_practice_trials = 0
 
 for thisPractice_loop in practice_loop:
+    if debug == 1:
+        break
     win.flip()
     #%Check if threshold performance has been met.
     n_practice_trials +=1
@@ -918,7 +918,7 @@ for thisTrial in trials:
         #Save Data to output File
 
         #Change this trail_ans
-        data_out.loc[len(data_out)+1]=[onsetTime,cor_resp_dict[trial_img], str(key_response.keys).strip('[]'), trial_img]
+        data_out.loc[len(data_out)+1]=[onsetTime,cor_resp_dict[trial_img], str(key_response.keys).strip('[]'), trial_img, key_response.rt]
         data_out.to_csv(out_all_fn, index=False)
 
     elif trial_img == 'image_folder/skip.png':

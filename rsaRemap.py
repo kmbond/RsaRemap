@@ -88,6 +88,7 @@ begin_scan = visual.TextStim(win=win, ori=0, name='begin_scan',
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
+chunkClock = core.Clock()
 ISI = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='ISI')
 image = visual.ImageStim(win=win, name='image',units='pix',
     image='sin', mask=None,
@@ -797,8 +798,10 @@ for thisTrial in trials:
         key_response.status = NOT_STARTED
         onsetTime = globalClock.getTime()
         print globalClock.getTime()
+        chunkClock.reset()
         for chunk_element,this_cor_resp in zip(chunk, cor_resp):
-
+            if chunkClock.getTime() > 4.0:
+                break
             fixation.setAutoDraw(False)
             win.flip()
             image.setImage(chunk_element)
@@ -832,7 +835,7 @@ for thisTrial in trials:
 
                     #Only grab onset Time if this is the first element in the chunk
 
-                if image.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
+                if image.status == STARTED and t >= (0.0 + (4-win.monitorFramePeriod*0.75)): #most of one frame period left
                     image.setAutoDraw(False)
                     continueRoutine = False
                 # *key_response* updates
@@ -844,7 +847,7 @@ for thisTrial in trials:
                     # keyboard checking is just starting
                     key_response.clock.reset()  # now t=0
 
-                if key_response.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
+                if key_response.status == STARTED and t >= (0.0 + (4-win.monitorFramePeriod*0.75)): #most of one frame period left
                     key_response.status = STOPPED
                     continueRoutine = False
                 if key_response.status == STARTED:
@@ -883,7 +886,10 @@ for thisTrial in trials:
                 # refresh the screen
                 if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                     win.flip()
-
+                if chunkClock.getTime() > 4.0:
+                    break    
+            if chunkClock.getTime() > 4.0:
+                break
             Wrong_1.setAutoDraw(False)
             win.flip()
             core.wait(iti)

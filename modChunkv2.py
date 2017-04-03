@@ -36,7 +36,7 @@ expInfo['group (c or r)'] = 'r'
 #Count how many days this subject has completed:
 current_session_count = []
 for file in os.listdir(_thisDir+os.sep + 'data'):
-    if fnmatch.fnmatch(file, '*summary*.csv'):
+    if fnmatch.fnmatch(file, '*' + expInfo['participant'] + '*summary*.csv'):
         current_session_count.append(file)
 expInfo['session'] = len(current_session_count) + 1
 session = int(expInfo['session'])

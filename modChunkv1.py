@@ -36,11 +36,11 @@ expInfo['group (c or r)'] = 'c'
 #Count how many days this subject has completed:
 current_session_count = []
 for file in os.listdir(_thisDir+os.sep + 'data'):
-    if fnmatch.fnmatch(file, '*summary*.csv'):
+    if fnmatch.fnmatch(file, '*' + expInfo['participant'] + '*summary*.csv'):
         current_session_count.append(file)
 expInfo['session'] = len(current_session_count) + 1
 session = int(expInfo['session'])
-
+print session 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s_group_%s' %(expInfo['participant'], expName, expInfo['date'], expInfo['group (c or r)'])
 

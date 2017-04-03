@@ -4,10 +4,10 @@ from __future__ import division  # so that 1/3=0.333 instead of 1/3=0
 from psychopy import visual, core, data, event, logging, gui
 from psychopy.constants import *  # things like STARTED, FINISHED
 import pandas as pd
-import numpy as np  # whole numpy lib is available, prepend 'np.'
+import numpy as np
 from numpy import sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray
 from numpy.random import random, randint, normal, shuffle
-import os  # handy system and path functions
+import os
 import statsmodels.formula.api as sm
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -29,7 +29,7 @@ session = int(expInfo['session'])
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
 
-out_all_fn =  _thisDir + os.sep + 'data/%s_%s_%s_%s_responses.csv' %(expName, expInfo['participant'],expInfo['Day'] , expInfo['session'])
+out_all_fn =  _thisDir + os.sep + 'data/%s_%s_Day%s_Session%s_responses.csv' %(expName, expInfo['participant'],expInfo['Day'] , expInfo['session'])
 data_out = pd.DataFrame(columns=('onsetTime','correctResp','keysPressed', 'chunk_id'))
 
 # Create random random permtuation of [1,8] so that each subject starts with random presentation of the resp dictionaries, only for the first session
@@ -81,7 +81,7 @@ practice_without_help = visual.TextStim(win=win, ori=0, name='practice_without_h
         depth=0.0)
 
 begin_scan = visual.TextStim(win=win, ori=0, name='begin_scan',
-        text=u'Well done, practice is completed. Now the scan will start where you will perform a group of 4 movements as quickly as you can.',    font=u'Arial',
+        text=u'Well done, practice is completed. Now the scan will start where you will perform a group of 4 movements as quickly and accurately as you can.',    font=u'Arial',
         pos=[0, 0], height=0.1, wrapWidth=None,
         color=u'white', colorSpace='rgb', opacity=1,
         depth=0.0)
@@ -137,6 +137,7 @@ img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C':
 
 #This dict changes each run.
 resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'M':'C' ,'R':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'M':'B', 'R':'C' ,'I':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
+print this_day_mapping.ix[session-1,0]
 resp_dict = resp_dict[this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
 resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
 
@@ -145,7 +146,7 @@ this_practice_dict = {key_map[key]: img_dict[resp_dict[key]] for key in key_map.
 df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.values()}
 df_practice = pd.DataFrame(data=df_practice)
 df_practice = df_practice[['img_id', 'cor_ans']]
-practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_session_%s.csv' %(expInfo['participant'], expInfo['session'])
+practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_Day%s_session_%s.csv' %(expInfo['participant'],expInfo['Day'],expInfo['session'])
 df_practice.to_csv(practiceOnsets_fn, index=False)
 
 
@@ -531,12 +532,13 @@ running_accuracy = []
 n_practice_trials = 0
 
 for thisPractice_loop in practice_loop:
-
+    win.flip()
     #%Check if threshold performance has been met.
     n_practice_trials +=1
     if n_practice_trials >80 and (sum(running_accuracy[-20:])/20.0)>.9:
         break
-
+    if n_practice_trials % 4 == 0:
+        core.wait(1)
 
 
     # abbreviate parameter names if possible (e.g. rgb = thisPractice_loop.rgb)
@@ -752,7 +754,8 @@ max_rt = 1
 ##### Wait for scanner trigger key #####
 event.clearEvents(eventType='keyboard')
 
-ScannerKey = event.waitKeys(["^","escape"])
+ScannerKey = event.waitKeys(keyList=["asciicircum","escape"])
+
 if endExpNow or "escape" in ScannerKey:
    core.quit()
 globalClock.reset()
@@ -887,7 +890,7 @@ for thisTrial in trials:
                 if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                     win.flip()
                 if chunkClock.getTime() > 4.0:
-                    break    
+                    break
             if chunkClock.getTime() > 4.0:
                 break
             Wrong_1.setAutoDraw(False)

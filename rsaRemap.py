@@ -13,7 +13,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.io
 import itertools
+
 debug = 1
+
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
@@ -107,7 +109,7 @@ Wrong_1 = visual.Circle(win=win, units = 'pix', radius = 100,lineColor='red', fi
 # Initialize components for Routine "End"
 EndClock = core.Clock()
 text = visual.TextStim(win=win, ori=0, name='text',
-    text=u'Experiment is completed. Thank you for your participation.',    font=u'Arial',
+    text=u'Block is completed. You may rest. Try to minimize movement.',    font=u'Arial',
     pos=[0, 0], height=0.1, wrapWidth=None,
     color=u'white', colorSpace='rgb', opacity=1,
     depth=0.0)
@@ -134,9 +136,9 @@ key_map = {'I':2, 'M':3, 'R':4, 'P':5}
 img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C': 'image_folder/stim_4.png', 'D': 'image_folder/stim_5.png'}
 
 #This dict changes each run.
-resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'M':'C' ,'R':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'M':'B', 'R':'C' ,'I':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
+resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'R':'C' ,'M':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'I':'B', 'R':'C' ,'M':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
 print this_day_mapping.ix[session-1,0]
-resp_dict = resp_dict[this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
+resp_dict = resp_dict[3] #this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
 resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
 
 #Practice trial handle

@@ -14,7 +14,7 @@ import seaborn as sns
 import scipy.io
 import itertools
 
-debug = 1
+debug = 0
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
@@ -138,7 +138,7 @@ img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C':
 #This dict changes each run.
 resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'R':'C' ,'M':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'I':'B', 'R':'C' ,'M':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
 print this_day_mapping.ix[session-1,0]
-resp_dict = resp_dict[3] #this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
+resp_dict = resp_dict[this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
 resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
 
 #Practice trial handle

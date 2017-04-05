@@ -82,6 +82,15 @@ df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.
 df_practice = pd.DataFrame(data=df_practice)
 df_practice = df_practice[['img_id', 'cor_ans']]
 df_practice = df_practice.replace({'cor_ans':key_dict})
+#This chunk of code reassigns the values so that 
+list = [df_practice.loc[df_practice['cor_ans']=='j','img_id'].values, df_practice.loc[df_practice['cor_ans']=='k', 'img_id'].values, df_practice.loc[df_practice['cor_ans']=='l', 'img_id'].values,  df_practice.loc[df_practice['cor_ans']=='semicolon', 'img_id'].values]
+concatlist = [item for sublist in list for item in sublist]
+df_practice['order_img_id'] =  concatlist
+df_practice['order_cor_ans'] = ['j', 'k', 'l', 'semicolon']
+df_practice.drop('img_id', axis=1)
+df_practice = df_practice[['order_img_id', 'order_cor_ans']].copy()
+df_practice.columns = ['img_id', 'cor_ans']
+
 practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_session_%s.csv' %(expInfo['participant'], expInfo['session'])
 df_practice.to_csv(practiceOnsets_fn, index=False)
 

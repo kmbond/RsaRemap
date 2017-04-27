@@ -55,7 +55,7 @@ logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a f
 endExpNow = False  # flag for 'escape' or other condition => quit the exp
 
 # Setup the Window
-win = visual.Window(size=(500, 500), fullscr=False, screen=0, allowGUI=False, allowStencil=False,
+win = visual.Window(size=(500, 500), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     )
@@ -90,9 +90,40 @@ begin_scan = visual.TextStim(win=win, ori=0, name='begin_scan',
 trialClock = core.Clock()
 chunkClock = core.Clock()
 ISI = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='ISI')
+
 image = visual.ImageStim(win=win, name='image',units='pix',
     image='sin', mask=None,
     ori=0, pos=[0, 0], size=[200,200],
+    color=[1,1,1], colorSpace='rgb', opacity=1,
+    flipHoriz=False, flipVert=False,
+    texRes=128, interpolate=True, depth=0.0)
+
+
+
+chunk_image_1 = visual.ImageStim(win=win, name='image',units='pix',
+    image='sin', mask=None,
+    ori=0, pos=[-150, 250], size=[80,80],
+    color=[1,1,1], colorSpace='rgb', opacity=1,
+    flipHoriz=False, flipVert=False,
+    texRes=128, interpolate=True, depth=0.0)
+
+chunk_image_2 = visual.ImageStim(win=win, name='image',units='pix',
+    image='sin', mask=None,
+    ori=0, pos=[-50, 250], size=[80,80],
+    color=[1,1,1], colorSpace='rgb', opacity=1,
+    flipHoriz=False, flipVert=False,
+    texRes=128, interpolate=True, depth=0.0)
+
+chunk_image_3 = visual.ImageStim(win=win, name='image',units='pix',
+    image='sin', mask=None,
+    ori=0, pos=[50, 250], size=[80,80],
+    color=[1,1,1], colorSpace='rgb', opacity=1,
+    flipHoriz=False, flipVert=False,
+    texRes=128, interpolate=True, depth=0.0)
+
+chunk_image_4 = visual.ImageStim(win=win, name='image',units='pix',
+    image='sin', mask=None,
+    ori=0, pos=[150, 250], size=[80,80],
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
     texRes=128, interpolate=True, depth=0.0)
@@ -137,7 +168,7 @@ img_dict = {'A': 'image_folder/stim_2.png', 'B': 'image_folder/stim_3.png', 'C':
 
 #This dict changes each run.
 resp_dict = [{'R':'A', 'M':'B', 'I':'C' ,'P':'D'}, {'I':'A', 'P':'B', 'R':'C' ,'M':'D'}, {'M':'A', 'R':'B', 'I':'C' ,'P':'D'}, {'P':'A', 'I':'B', 'R':'C' ,'M':'D'}, {'R':'A', 'P':'B', 'I':'C' ,'M':'D'}, {'M':'A', 'I':'B', 'R':'C' ,'P':'D'}, {'P':'A', 'R':'B', 'M':'C' ,'I':'D'},{'R':'A', 'I':'B', 'P':'C' ,'M':'D'}]
-print this_day_mapping.ix[session-1,0]
+
 resp_dict = resp_dict[this_day_mapping.ix[session-1,0]] #grab the mapping for this session.
 resp_dict_invert = dict([(v, k) for k, v in resp_dict.iteritems()])
 
@@ -149,6 +180,15 @@ df_practice = df_practice[['img_id', 'cor_ans']]
 practiceOnsets_fn =  _thisDir + os.sep + 'data/%s_practiceOnsets_Day%s_session_%s.csv' %(expInfo['participant'],expInfo['Day'],expInfo['session'])
 df_practice.to_csv(practiceOnsets_fn, index=False)
 
+
+this_practice_dict = {key_map[key]: img_dict[resp_dict[key]] for key in key_map.keys()}
+df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.values()}
+df_practice = pd.DataFrame(data=df_practice)
+df_practice = df_practice[['img_id', 'cor_ans']]
+df_practice = pd.concat([df_practice]*500, ignore_index=True)
+df_practice = df_practice.sample(frac=1).reset_index(drop=True)
+practiceChunks_fn =  _thisDir + os.sep + 'data/%s_practiceChunks_Day%s_session_%s.csv' %(expInfo['participant'],expInfo['Day'],expInfo['session'])
+df_practice.to_csv(practiceChunks_fn, index=False)
 
 
 ChunkC1_img = [img_dict[letter] for letter in ChunkC1]
@@ -188,16 +228,14 @@ isDone = 0
 while not isDone:
     trial_types = np.asarray([1,2,3,4,5,6,7,8])
     trial_IDs = np.asarray(range(8))
-    iti_range = np.asarray([2, 2, 2, 2, 3, 3, 3, 4, 5, 6, 7, 8])
-
-
+    iti_range = np.asarray([3, 3, 3, 4, 4, 4, 5, 6, 7, 8])
     n_post = 3
     t_vec = []
     iti_vec = []
     tid_vec = []
 
     for tt in range(0,len(trial_types)):
-        t_vec = np.repeat(trial_types,6)
+        t_vec = np.repeat(trial_types,5)
         iti_vec = np.tile(iti_range,4)
 
     np.random.shuffle(t_vec)
@@ -210,7 +248,7 @@ while not isDone:
     vec = vec + [0,0,0]
     dfStims = pd.DataFrame()
     X = np.zeros((len(vec),len(trial_types)))
-    ons = np.zeros((6,8))
+    ons = np.zeros((5,8))
     for c in trial_types:
         a = np.where(vec==c)[0]
         ons[:,c-1] = a*2
@@ -516,9 +554,9 @@ for thisComponent in InstructionsComponents:
     if hasattr(thisComponent, "setAutoDraw"):
         thisComponent.setAutoDraw(False)
 # set up handler to look after randomisation of conditions etc
-practice_loop = data.TrialHandler(nReps=1000, method='random',
+practice_loop = data.TrialHandler(nReps=1, method='sequential',
     extraInfo=expInfo, originPath=None,
-    trialList=data.importConditions(practiceOnsets_fn),
+    trialList=data.importConditions(practiceChunks_fn),
     seed=None, name='practice_loop')
 
 thisExp.addLoop(practice_loop)  # add the loop to the experiment
@@ -532,6 +570,8 @@ running_accuracy = []
 n_practice_trials = 0
 
 for thisPractice_loop in practice_loop:
+
+    break
     if debug == 1:
         break
     win.flip()
@@ -554,6 +594,7 @@ for thisPractice_loop in practice_loop:
     routineTimer.add(100)  # clock
 
     frameN = -1
+
 
     # update component parameters for each repeat
     image.setImage(img_id)
@@ -714,7 +755,7 @@ while continueRoutine and routineTimer.getTime() > 0:
         begin_scan.tStart = t  # underestimates by a little under one frame
         begin_scan.frameNStart = frameN  # exact frame index
         begin_scan.setAutoDraw(True)
-    if begin_scan.status == STARTED and t >= (0.0 + (5-win.monitorFramePeriod*0.75)): #most of one frame period left
+    if begin_scan.status == STARTED and t >= (0.0 + (1-win.monitorFramePeriod*0.75)): #most of one frame period left
         begin_scan.setAutoDraw(False)
         continueRoutine = False
     # check if all components have finished
@@ -803,9 +844,22 @@ for thisTrial in trials:
         key_response.status = NOT_STARTED
         onsetTime = globalClock.getTime()
         print globalClock.getTime()
+
+
+        chunk_image_1.setImage(chunk[0])
+        chunk_image_1.setAutoDraw(True)
+        chunk_image_2.setImage(chunk[1])
+        chunk_image_2.setAutoDraw(True)
+        chunk_image_3.setImage(chunk[2])
+        chunk_image_3.setAutoDraw(True)
+        chunk_image_4.setImage(chunk[3])
+        chunk_image_4.setAutoDraw(True)
+        fixation.setAutoDraw(False)
+        win.flip()
+        core.wait(.5)
         chunkClock.reset()
         for chunk_element,this_cor_resp in zip(chunk, cor_resp):
-            if chunkClock.getTime() > 4.0:
+            if chunkClock.getTime() > 5.8:
                 break
             fixation.setAutoDraw(False)
             win.flip()
@@ -840,7 +894,7 @@ for thisTrial in trials:
 
                     #Only grab onset Time if this is the first element in the chunk
 
-                if image.status == STARTED and t >= (0.0 + (4-win.monitorFramePeriod*0.75)): #most of one frame period left
+                if image.status == STARTED and t >= (0.0 + (6-win.monitorFramePeriod*0.75)): #most of one frame period left
                     image.setAutoDraw(False)
                     continueRoutine = False
                 # *key_response* updates
@@ -852,7 +906,7 @@ for thisTrial in trials:
                     # keyboard checking is just starting
                     key_response.clock.reset()  # now t=0
 
-                if key_response.status == STARTED and t >= (0.0 + (4-win.monitorFramePeriod*0.75)): #most of one frame period left
+                if key_response.status == STARTED and t >= (0.0 + (6-win.monitorFramePeriod*0.75)): #most of one frame period left
                     key_response.status = STOPPED
                     continueRoutine = False
                 if key_response.status == STARTED:
@@ -891,14 +945,18 @@ for thisTrial in trials:
                 # refresh the screen
                 if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                     win.flip()
-                if chunkClock.getTime() > 4.0:
+                if chunkClock.getTime() > 5.8:
                     break
-            if chunkClock.getTime() > 4.0:
+            if chunkClock.getTime() > 5.8:
                 break
             Wrong_1.setAutoDraw(False)
             win.flip()
             core.wait(iti)
 
+        chunk_image_1.setAutoDraw(False)
+        chunk_image_2.setAutoDraw(False)
+        chunk_image_3.setAutoDraw(False)
+        chunk_image_4.setAutoDraw(False)
 
         #-------Ending Routine "trial"-------
         for thisComponent in trialComponents:

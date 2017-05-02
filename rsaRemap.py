@@ -12,7 +12,7 @@ import os
 import scipy.io
 import itertools
 
-debug = 1
+debug = 0
 
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
@@ -234,7 +234,8 @@ iti = .250
 #Dynamically generate onsets
 #optseq2 --ntp 280 --tr 2.0 --psdwin 0 16 2 --ev chunk_R1 6 5 --ev chunk_R2 6 5 --ev chunk_R3 6 5 --ev chunk_R4 6 5 --ev chunk_C1 6 5 --ev chunk_C2 6 5 --ev chunk_C3 6 5 --ev chunk_C4 6 5 --nkeep 3 --o ex2 --nsearch 1000 --tnullmin 4 --tprescan -4
 n_trs = 240
-dfStims = pd.read_csv('modmap_onsets-001.par', header=None, sep=r"\s*")
+onset_filename = 'modmap-00%d.par' % (session)
+dfStims = pd.read_csv(onset_filename, header=None, sep=r"\s*")
 dfStims = dfStims[[0,4]]
 dfStims.columns = ['time', 'trial_img']
 dfStims.set_index('time')

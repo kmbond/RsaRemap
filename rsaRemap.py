@@ -232,7 +232,7 @@ img_dict = dict(zip(keys, img_filenames))
 iti = .250
 
 #Dynamically generate onsets
-#optseq2 --ntp 280 --tr 2.0 --psdwin 0 16 2 --ev chunk_R1 6 5 --ev chunk_R2 6 5 --ev chunk_R3 6 5 --ev chunk_R4 6 5 --ev chunk_C1 6 5 --ev chunk_C2 6 5 --ev chunk_C3 6 5 --ev chunk_C4 6 5 --nkeep 3 --o ex2 --nsearch 1000 --tnullmin 4 --tprescan -4
+#optseq2 --ntp 240 --tr 2.0 --psdwin 0 16 2 --ev chunk_R1 6 5 --ev chunk_R2 6 5 --ev chunk_R3 6 5 --ev chunk_R4 6 5 --ev chunk_C1 6 5 --ev chunk_C2 6 5 --ev chunk_C3 6 5 --ev chunk_C4 6 5 --nkeep 8 --o modmap --nsearch 10000 --tnullmin 4 --tprescan -4
 n_trs = 240
 onset_filename = 'modmap-00%d.par' % (session)
 dfStims = pd.read_csv(onset_filename, header=None, sep=r"\s*")

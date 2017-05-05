@@ -169,7 +169,7 @@ msg.preamble = ''
 
 # Credentials (if needed)
 username = 'beuk.pat'
-password = 'theBull!1'
+password = ''
 for file in glob.glob('group*.svg'):
     fp = open(file, 'rb')
     img = MIMEImage(fp.read(), name=os.path.basename(file), _subtype="svg")

@@ -40,7 +40,9 @@ for file in os.listdir(_thisDir+os.sep + 'data'):
         current_session_count.append(file)
 expInfo['session'] = len(current_session_count) + 1
 session = int(expInfo['session'])
-print session 
+if session==11:
+    sys.exit("You are done!")
+
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s_group_%s' %(expInfo['participant'], expName, expInfo['date'], expInfo['group (c or r)'])
 
@@ -1113,7 +1115,7 @@ data_summary = pd.DataFrame(columns = (sum_names))
 
 win.close()
 
-skip_index = 16
+skip_index = 0
 max_lags = 15
 plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.svg' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'])
 
@@ -1147,8 +1149,15 @@ for i in np.unique(data_out[['block']]):
     x = np.vstack([x,np.ones(len(x))]).T
     result = sm.OLS(y, x).fit()
     R = result.resid
+    #regress the good trials using 5th order polynmoial
+    idx = np.isfinite(y)
+    y = y[idx]
+    x = np.linspace(1,y.size,y.size)
+    z = np.polyfit(x,y, 5)
+    p = np.poly1d(z)
+    R = y-p(x)
 
-    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, qstat=True, fft=False, alpha=0.05)
+    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, qstat=True, fft=False, alpha=0.05, missing='drop')
     lags = acfResults[0]
     lags = lags[1:] #don't care about first lag always 1
     data_lags.loc[i] = lags

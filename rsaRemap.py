@@ -1,6 +1,5 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-
 from __future__ import division  #
 from psychopy import visual, core, data, event, logging, gui
 from psychopy.constants import *
@@ -11,6 +10,7 @@ from numpy.random import random, randint, normal, shuffle
 import os
 import scipy.io
 import itertools
+from subprocess import call
 
 debug = 0
 
@@ -32,8 +32,9 @@ this_subject_mappings_fn =  _thisDir + os.sep + 'data/%s_this_subject_mapping_da
 if not os.path.isfile(this_subject_mappings_fn):
     this_subject_mappings = pd.DataFrame(data = np.random.permutation(8))
     this_subject_mappings.to_csv(this_subject_mappings_fn, index=False)
+    #dynamically generate onsets
+    os.system("optseq2 --ntp 240 --tr 2.0 --psdwin 0 16 2 --ev chunk_R1 6 5 --ev chunk_R2 6 5 --ev chunk_R3 6 5 --ev chunk_R4 6 5 --ev chunk_C1 6 5 --ev chunk_C2 6 5 --ev chunk_C3 6 5 --ev chunk_C4 6 5 --nkeep 8 --o modmap --nsearch 10000 --tnullmin 4 --tprescan -4")
 this_day_mapping = pd.read_csv(this_subject_mappings_fn)
-
 
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
@@ -50,6 +51,7 @@ win = visual.Window(size=(500, 500), fullscr=True, screen=0, allowGUI=False, all
     monitor='testMonitor', color=[-1,-1,-1], colorSpace='rgb',
     blendMode='avg', useFBO=True,
     )
+
 # store frame rate of monitor if we can measure it successfully
 expInfo['frameRate']=win.getActualFrameRate()
 if expInfo['frameRate']!=None:
@@ -219,7 +221,6 @@ ChunkR4_cor_key = [key_map[letter] for letter in ChunkR4]
 chunk_dict = {'chunk_C1': ChunkC1_img, 'chunk_C2': ChunkC2_img,'chunk_C3': ChunkC3_img,'chunk_C4': ChunkC4_img,'chunk_R1': ChunkR1_img,'chunk_R2': ChunkR2_img,'chunk_R3': ChunkR3_img,'chunk_R4': ChunkR4_img}
 cor_resp_dict = {'chunk_C1': ChunkC1_cor_key, 'chunk_C2': ChunkC2_cor_key,'chunk_C3': ChunkC3_cor_key,'chunk_C4': ChunkC4_cor_key,'chunk_R1': ChunkR1_cor_key,'chunk_R2': ChunkR2_cor_key,'chunk_R3': ChunkR3_cor_key,'chunk_R4': ChunkR4_cor_key}
 
-corr_thresh = 0.05
 dfStims = pd.DataFrame
 sequence_img_ids = []
 
@@ -231,8 +232,6 @@ img_filenames = ['chunk_C1', 'chunk_C2', 'chunk_C3', 'chunk_C4', 'chunk_R1', 'ch
 img_dict = dict(zip(keys, img_filenames))
 iti = .250
 
-#Dynamically generate onsets
-#optseq2 --ntp 240 --tr 2.0 --psdwin 0 16 2 --ev chunk_R1 6 5 --ev chunk_R2 6 5 --ev chunk_R3 6 5 --ev chunk_R4 6 5 --ev chunk_C1 6 5 --ev chunk_C2 6 5 --ev chunk_C3 6 5 --ev chunk_C4 6 5 --nkeep 8 --o modmap --nsearch 10000 --tnullmin 4 --tprescan -4
 n_trs = 240
 onset_filename = 'modmap-00%d.par' % (session)
 dfStims = pd.read_csv(onset_filename, header=None, sep=r"\s*")

@@ -40,6 +40,8 @@ for file in os.listdir(_thisDir+os.sep + 'data'):
         current_session_count.append(file)
 expInfo['session'] = len(current_session_count) + 1
 session = int(expInfo['session'])
+if session==11:
+    sys.exit("You are done!")
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
 filename = _thisDir + os.sep + 'data/%s_%s_%s_group_%s' %(expInfo['participant'], expName, expInfo['date'], expInfo['group (c or r)'])
@@ -82,7 +84,7 @@ df_practice = {'cor_ans':this_practice_dict.keys(),'img_id': this_practice_dict.
 df_practice = pd.DataFrame(data=df_practice)
 df_practice = df_practice[['img_id', 'cor_ans']]
 df_practice = df_practice.replace({'cor_ans':key_dict})
-#This chunk of code reassigns the values so that 
+#This chunk of code reassigns the values so that
 list = [df_practice.loc[df_practice['cor_ans']=='j','img_id'].values, df_practice.loc[df_practice['cor_ans']=='k', 'img_id'].values, df_practice.loc[df_practice['cor_ans']=='l', 'img_id'].values,  df_practice.loc[df_practice['cor_ans']=='semicolon', 'img_id'].values]
 concatlist = [item for sublist in list for item in sublist]
 df_practice['order_img_id'] =  concatlist
@@ -1124,7 +1126,7 @@ data_summary = pd.DataFrame(columns = (sum_names))
 
 win.close()
 
-skip_index = 16
+skip_index = 0
 max_lags = 15
 plot_fn =  _thisDir + os.sep +'data/rtPlot_%s_%s_%s_Day_%s.svg' %(expInfo['participant'], expName, expInfo['date'], expInfo['session'])
 
@@ -1152,14 +1154,21 @@ for i in np.unique(data_out[['block']]):
     #replace NaNs with mean of rts in that block
     good_trials = good_trials[['rt']].replace(np.nan,rt_cor.rt)
 
-    #regress the good trials
+    #regress the good trials using OLS
     y = np.array(good_trials['rt'])
     x = np.linspace(1,y.size,y.size)
     x = np.vstack([x,np.ones(len(x))]).T
     result = sm.OLS(y, x).fit()
     R = result.resid
+    #regress the good trials using 5th order polynmoial
+    idx = np.isfinite(y)
+    y = y[idx]
+    x = np.linspace(1,y.size,y.size)
+    z = np.polyfit(x,y, 5)
+    p = np.poly1d(z)
+    R = y-p(x)
 
-    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, qstat=True, fft=False, alpha=0.05)
+    acfResults = statsmodels.tsa.stattools.acf(R, unbiased=False, nlags=15, qstat=True, fft=False, alpha=0.05, missing='drop')
     lags = acfResults[0]
     lags = lags[1:] #don't care about first lag always 1
     data_lags.loc[i] = lags

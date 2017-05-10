@@ -1,6 +1,32 @@
+from __future__ import division
+
+import sys
+import pandas as pd
+import numpy as np
+from numpy import sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray
+from numpy.random import random, randint, normal, shuffle
+import itertools
+import pdb
+import os
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+import statsmodels
+import fnmatch
+import seaborn as sns
+import smtplib
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from sklearn.preprocessing import normalize
+import glob
+import time
+
 #house keeping, delete old files that are no longer needed
-for svg in glob.glob('/home/beukema2/Dropbox/modChunk/copy_modmap_behavior/*Days1-*.svg'):
+for svg in glob.glob(os.path.expanduser('~/Dropbox/modmap/copy_modmap_behavior/*Days1-*.svg')):
     os.remove(svg)
+
+os.chdir(os.path.expanduser('~/Dropbox/modChunk/copy_modmap_behavior/'))
+sns.set(context='paper', font_scale=2.0)
 
 for group in ['r', 'c']:
 

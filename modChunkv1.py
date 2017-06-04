@@ -246,7 +246,7 @@ practice_without_help = visual.TextStim(win=win, ori=0, name='practice_without_h
         color=u'white', colorSpace='rgb', opacity=1,
         depth=0.0)
 
-pause_text = 'Practice is completed. Press any key to continue'
+pause_text = 'Practice is completed. In the following sessions, move as fast and as accurately as possible. Press any key to continue'
 pause_after_block = visual.TextStim(win=win, ori=0, name='text',
     text=pause_text,    font=u'Arial',
     pos=[0, 0], height=0.1, wrapWidth=None,

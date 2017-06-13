@@ -18,8 +18,11 @@ from email.mime.multipart import MIMEMultipart
 from sklearn.preprocessing import normalize
 import glob
 import time
+import warnings
 
 os.chdir(os.path.expanduser('~/Dropbox/modmap/behavior/'))
+out_path = os.path.expanduser('~/Dropbox/modmap/analysis/')
+
 sns.set_context(context='paper', font_scale=2.0)
 
 allResp_files = []
@@ -36,7 +39,6 @@ for file_name in allResp_files:
     data_out = pd.read_csv(file_name)
     skip_index = 0
     max_lags = 15
-
 
     for i in np.unique(data_out[['block']]):
         #make a plot of the response times vs trial and plot by type save with subject's id.
@@ -69,7 +71,6 @@ for file_name in allResp_files:
         p = np.poly1d(z)
         R = y-p(x)
 
-
         acfResults = statsmodels.tsa.stattools.acf(R,unbiased=True, nlags=15, fft=True, alpha=0.05, missing='drop')
         lags = acfResults[0]
         lags = lags[1:] #don't care about first lag always 1
@@ -93,7 +94,7 @@ for file_name in allResp_files:
 
 
 #house keeping, delete old files that are no longer needed
-for svg in glob.glob('/home/beukema2/Dropbox/modmap/behavior/*Days1-*.svg'):
+for svg in glob.glob('/home/beukema2/Dropbox/modmap/analysis/*.svg'):
     os.remove(svg)
 #initialize common group dict of dataframes
 group_rts = {}
@@ -145,7 +146,36 @@ for group in ['r', 'c']:
 
         # Generate autocorrelation plots
         sns.set_context(context='paper', font_scale=2.0)
-        fig = plt.figure()
+
+        sns.set_style("ticks")
+
+        fig = plt.figure(figsize=(8,12))
+        ax1 = fig.add_subplot(321)
+        ax2 = fig.add_subplot(322)
+
+        #Generate Accuracy Plots for the Sequence
+        plt.subplot(321)
+        Acc.sort_values(by=['Day'], ascending = [True], inplace=True)
+        sns.regplot('Day', 'seqAcc',data=Acc, fit_reg=False, ax=ax1, scatter_kws={'s':40})
+        plt.axis([0,11,.5,1])
+        plt.xticks(np.arange(1,11,1))
+        plt.ylabel('Accuracy')
+        plt.xlabel('Day')
+
+        #Generate RT plots
+        plt.subplot(322)
+        RT.sort_values(by=['Day'], ascending = [True], inplace=True)
+        sns.regplot('Day', 'zscoredRT',data=RT, fit_reg=False, ax=ax2, scatter_kws={'s':40})
+        plt.axis([0,11,0,8])
+        plt.xticks(np.arange(1,11,1))
+        plt.ylabel('Reaction Time')
+        plt.xlabel('Day')
+        sns.despine(offset=.1, trim=True);
+
+        fig.add_subplot(312)
+        fig.add_subplot(313)
+
+        plt.subplot(312)
         blues = plt.get_cmap('Blues')
         # Random
         for i in range(1,len(randLags)+1):
@@ -154,14 +184,16 @@ for group in ['r', 'c']:
 
         box = plt.gca().get_position()
         plt.gca().set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        randPlotFN = day[:4] + '_randCorr_Days1-' + str(len(Acc)) + '.svg'
         plt.xlabel('Lag (Trials)')
-        plt.ylabel('Correlation')
+        plt.ylabel('Correlation (Rand)')
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        plt.axis([0,16, -0.5,1])
-        plt.savefig(randPlotFN)
-        plt.close("all")
+        plt.axis([0.5,16, -0.5,1])
+        plt.xticks(np.arange(1,16,1))
+        plt.yticks(np.arange(-.5,1,0.25))
+        sns.despine(offset=.25, trim=True);
+        sns.set_style("ticks")
 
+        plt.subplot(313)
         greens = plt.get_cmap('Greens')
         for i in range(1,len(randLags)+1):
             colorGreen = greens(.05 + float(i)/(len(randLags)+1))
@@ -169,39 +201,23 @@ for group in ['r', 'c']:
 
         box = plt.gca().get_position()
         plt.gca().set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        seqPlotFN = day[:4] + '_seqCorr_Days1-' + str(len(Acc))+ '.svg'
         plt.xlabel('Lag (Trials)')
-        plt.ylabel('Correlation')
+        plt.ylabel('Correlation (Seq)' )
         plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        plt.axis([0,16, -0.5,1])
-        plt.savefig(seqPlotFN)
-        plt.close("all")
+        plt.axis([0.5,16, -0.5,1])
+        plt.xticks(np.arange(1,16,1))
+        plt.yticks(np.arange(-.5,1,0.25))
+        plt.axis([0.5,16, -0.5,1])
+        sns.despine(offset=.25, trim=True);
+        sns.set_style("ticks")
 
-        #Generate Accuracy Plots for the Sequence
-        plt.figure(figsize=(8, 6))
-        Acc.sort_values(by=['Day'], ascending =[True], inplace=True)
-        accPlot_fn =  day[:4] + '_Acc_Days1-' + str(len(Acc))+ '.svg'
-        colorBlue = blues(.05 + float(i)/(len(randLags)+1))
-        plt.plot(range(1,16),randLags.loc[i], color = colorBlue, label = 'seq')
-        sns.lmplot('Day', 'seqAcc',data=Acc, fit_reg=False)
-        plt.axis([0,len(Acc)+1,.5,1])
-        plt.ylabel('% Correct')
-        plt.xlabel('Day')
-        plt.savefig(accPlot_fn)
-        plt.close("all")
 
-        #Generate RT plots
-        plt.figure(figsize=(8, 6))
-        RT.sort_values(by=['Day'], ascending =[True], inplace=True)
-        RTPlot_fn =  day[:4] + '_RT_Days1-' + str(len(Acc))+ '.svg'
-        sns.lmplot('Day', 'zscoredRT',data=RT, fit_reg=False)
-        plt.axis([0,len(RT)+1,-1,10])
-        plt.ylabel('Reaction Times (z-scores)')
-        plt.xlabel('Day')
-        sdTitle = 'Subject:' + day[:4]
-        plt.title(sdTitle)
-        plt.savefig(RTPlot_fn)
-        plt.close("all")
+
+        #save figure
+        fileoutname =  out_path + day[:4] + '_summary_Days1-' + str(len(Acc))+ '.svg'
+        plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
+        fig.savefig(fileoutname)
+        plt.close('all')
 
         #Generate group plots:
         seqLags['sid']= day[:4]
@@ -222,13 +238,14 @@ for group in ['r', 'c']:
     df = pd.melt(result, id_vars=["day", 'sid'], value_vars = lag_names)
     df['variable'] = df['variable'].map(lambda x: x.lstrip('lag').rstrip('aAbBcC'))
     fig = plt.figure(figsize=(9,6))
-    df = df.convert_objects(convert_numeric=True)
+    df = df.apply(pd.to_numeric, errors='coerce')
     ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=df,interpolate=True, ci=68,color=sns.cubehelix_palette(12,reverse=True))
     ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
     plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-    group_plot_fn = 'group' + group_dict[group] + '.svg'
+    group_plot_fn = out_path + 'group' + group_dict[group] + '.svg'
     ax.set_title(group_dict[group] + ' group' )
-    plt.axis([1,15,-.2,.6])
+    plt.axis([0,16,-.2,.6])
+    sns.despine(offset=10, trim=True);
     plt.savefig(group_plot_fn,bbox_inches='tight')
     plt.close("all")
 
@@ -238,11 +255,15 @@ plt.figure(figsize=(8, 6))
 result = pd.concat(group_acc.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'Group'], value_vars = 'seqAcc')
-ax = sns.tsplot(time='Day', value='value',condition='Group',unit='sid',data=df, estimator=np.nanmean,  err_style="ci_bars",color="Set2", interpolate=False, ci=68)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    ax = sns.tsplot(time='Day', value='value',condition='Group',unit='sid',data=df, estimator=np.nanmean,  err_style="ci_bars",color="Set2", interpolate=False, ci=68)
 ax.set(xlabel='Day', ylabel='Accuracy')
-group_plot_fn = 'group_accuracy.svg'
+group_plot_fn = out_path + 'mean_accuracy.svg'
 ax.set_title('Accuracy')
 plt.axis([0,11,.5,1])
+plt.xticks(np.arange(1,11,1))
+sns.despine(offset=5, trim=True);
 plt.savefig(group_plot_fn,bbox_inches='tight')
 plt.close("all")
 
@@ -252,11 +273,15 @@ plt.figure(figsize=(8, 6))
 result = pd.concat(group_rts.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'Group'], value_vars = 'zscoredRT')
-ax = sns.tsplot(time='Day', value='value',condition='Group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars",color="Set2", interpolate=False, ci=68)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    ax = sns.tsplot(time='Day', value='value',condition='Group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars",color="Set2", interpolate=False, ci=68)
 ax.set(xlabel='Day', ylabel='Response Time (z-units)')
-group_plot_fn = 'group_response_times.svg'
+group_plot_fn = out_path + 'mean_response_times.svg'
 ax.set_title('Response Times')
 plt.axis([0,11,0,7])
+plt.xticks(np.arange(1,11,1))
+sns.despine(offset=5, trim=True);
 plt.savefig(group_plot_fn,bbox_inches='tight')
 plt.close("all")
 
@@ -274,7 +299,7 @@ msg.preamble = ''
 # Credentials
 username = 'beuk.pat'
 password = ''
-for file in glob.glob('group*.svg'):
+for file in glob.glob(out_path + 'group*.svg'):
     fp = open(file, 'rb')
     img = MIMEImage(fp.read(), name=os.path.basename(file), _subtype="svg")
     fp.close()

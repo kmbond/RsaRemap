@@ -20,32 +20,39 @@ import glob
 import time
 import warnings
 
+# Use os.path.expanduser if you are working on multiple machines, this way relative paths will point to right place
 os.chdir(os.path.expanduser('~/Dropbox/modmap/behavior/'))
 out_path = os.path.expanduser('~/Dropbox/modmap/analysis/')
 
-sns.set_context(context='paper', font_scale=2.0)
-
-
-#house keeping, delete old files that are no longer needed
+# Good house keeping, this will delete old figures that you are about to update
 for svg in glob.glob(os.path.expanduser('~/Dropbox/modmap/analysis/*.svg')):
     os.remove(svg)
-#initialize common group dict of dataframes
+
+# Initialize common dictionaries for group level analyses
+# These will be converted to dataframes
+# We use a dict since each subject will have a variable number of training days
 group_rts = {}
 group_acc= {}
 group_acfs = {}
 group_dict = {'r':'cue', 'c':'response'}
+
+# Loop through the two groups (r and c) in the study
 for group in ['r', 'c']:
 
+    # Generate a list of the subjects that are currently in the study
     summary_files = []
     for file in os.listdir('.'):
         if fnmatch.fnmatch(file, '*summary*' + group + '.csv'):
             summary_files.append(file)
-    #get unique subjects
     subs = []
     for i in range(0, len(summary_files)):
         subs.append(summary_files[i][:4])
     uniqueSubs = list(set(subs))
+
+    # First loop through subjects and generate individual summary figures for each
     for sub in uniqueSubs:
+
+        #initialize the dataframes
         Acc = pd.DataFrame(columns=('Day', 'randAcc', 'seqAcc'))
         RT = pd.DataFrame(columns = ('Day', 'zscoredRT'))
         sdRT = pd.DataFrame(columns = ('Day', 'sdRTseq','sdRTrand', 'sdRatio'))
@@ -55,12 +62,14 @@ for group in ['r', 'c']:
         randLags = pd.DataFrame(columns = lag_names)
         seqLags = pd.DataFrame(columns = lag_names)
         df = pd.DataFrame()
-        sub_files = []
 
+        # Find the subjects summary data files
+        sub_files = []
         for file in os.listdir('.'):
             if fnmatch.fnmatch(file, sub+'*summary*' + '.csv'):
                 sub_files.append(file)
 
+        # populate the dataframes containing each summary statistic for each day
         for day in sub_files:
             df = pd.read_csv(day)
             Acc.loc[int(day[day.find('session')+8:-12])] = [int(day[day.find('session')+8:-12]),df['accuracy'][5], df['accuracy'][6]]
@@ -70,62 +79,63 @@ for group in ['r', 'c']:
             randLags.loc[int(day[day.find('session')+8:-12])] = df[lag_names].loc[5]
             seqLags.loc[int(day[day.find('session')+8:-12])] = df[lag_names].loc[6]
 
-        #chunkSizeSeq.loc[int(day[day.find('session')+8:-12])] = [int(day[day.find('session')+8:-12]), df['chunkSize'][6]]
-        #chunkSizeRand.loc[int(day[day.find('session')+8:-12])] = [int(day[day.find('session')+8:-12]), df['chunkSize'][5]]
+        # Sort so that dataframes are ordered by day
         randLags = randLags.sort_index(axis=0)
         seqLags = seqLags.sort_index(axis=0)
 
-        # Generate autocorrelation plots
+        # Setting the context in this way will make your figure font size appear properly on a standard paper e.g for a journal submission.
         sns.set_context(context='paper', font_scale=2.0)
-        sns.set_style("ticks")
+        # this is the setting you want
+        sns.set_style("white", {'axes.linewidth':0.0001, 'axes.edgecolor':'black'})
+
+        #Set up one big figure for each panel and then add subplots to that figure (Panel A, B and so on)
         fig = plt.figure(figsize=(8,12))
         ax1 = fig.add_subplot(321)
         ax2 = fig.add_subplot(322)
 
         #Generate Accuracy Plots for the Sequence
-        plt.subplot(321)
+        plt.subplot(321) # Specify which subplot to write to
         Acc.sort_values(by=['Day'], ascending = [True], inplace=True)
         sns.regplot('Day', 'seqAcc',data=Acc, fit_reg=False, ax=ax1, scatter_kws={'s':40})
-        plt.axis([0,11,.5,1])
-        plt.xticks(np.arange(1,11,1))
+        plt.axis([1,10,.5,1])
+        plt.xticks(np.arange(1,10.1,1))
         plt.ylabel('Accuracy')
         plt.xlabel('Day')
-        plt.title('Accuracy')
+        plt.title('(a)', loc='left', y = 1.1, x = -0.35)
+        plt.grid(linestyle='dotted')
 
         #Generate RT plots
         plt.subplot(322)
         RT.sort_values(by=['Day'], ascending = [True], inplace=True)
         sns.regplot('Day', 'zscoredRT',data=RT, fit_reg=False, ax=ax2, scatter_kws={'s':40})
-        plt.axis([0,11,0,8])
-        plt.xticks(np.arange(1,11,1))
+        plt.axis([1,10,0,6])
+        plt.xticks(np.arange(1,10.1,1))
         plt.ylabel('Reaction Time (z-units)')
-        plt.title('Speed')
         plt.xlabel('Day')
-        sns.despine(offset=.1, trim=True);
+        plt.title('(b)', loc='left',y = 1.1, x = -0.35)
+        plt.grid(linestyle='dotted')
 
+        # add subplots for panels C and D
         fig.add_subplot(312)
         fig.add_subplot(313)
 
         plt.subplot(312)
         blues = plt.get_cmap('Blues')
-        # Random
+        # Autocorrelation for random trials
         for i in range(1,len(randLags)+1):
             colorBlue = blues(.05 + float(i)/(len(randLags)+1))
             plt.plot(range(1,16),randLags.loc[i], color = colorBlue, label = 'Day ' + str(i))
-
         box = plt.gca().get_position()
         plt.gca().set_position([box.x0, box.y0, box.width * 0.8, box.height])
         plt.xlabel('Lag (Trials)')
-        plt.ylabel('Correlation')
+        plt.ylabel('Autocorrelation')
         legend = plt.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
         plt.setp(legend.get_title(),fontsize='xx-small')
-
-        plt.title('Random Block', y=0.9)
-        plt.axis([0.5,16, -0.5,1])
+        plt.title('(c)', y=0.9, loc='left', x = -0.15)
+        plt.axis([1,15, -0.5,.75])
         plt.xticks(np.arange(1,16,1))
-        plt.yticks(np.arange(-.5,1,0.25))
-        sns.despine(offset=.25, trim=True);
-        sns.set_style("ticks")
+        plt.yticks(np.arange(-.5,.76,0.25))
+        plt.grid(linestyle='dotted')
 
         plt.subplot(313)
         greens = plt.get_cmap('Greens')
@@ -139,17 +149,16 @@ for group in ['r', 'c']:
         plt.ylabel('Autocorrelation' )
         legend = plt.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
         plt.setp(legend.get_title(),fontsize='xx-small')
-        plt.title('Sequence Block', y=0.9)
-        plt.axis([0.5,16, -0.5,1])
+        plt.title('(d)', y=0.9, loc='left', x = -0.15)
+        plt.axis([1,15, -0.5,.75])
         plt.xticks(np.arange(1,16,1))
-        plt.yticks(np.arange(-.5,1,0.25))
-        sns.despine(offset=.25, trim=True);
-        sns.set_style("ticks")
+        plt.yticks(np.arange(-.5,.76,0.25))
+        plt.grid(linestyle='dotted')
 
         #save figure
-        fileoutname =  out_path + day[:4] + '_summary_Days1-' + str(len(Acc))+ '.svg'
+        ind_plot_fn =  out_path + day[:4] + '_summary_Days1-' + str(len(Acc))+ '.svg'
         plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
-        fig.savefig(fileoutname)
+        fig.savefig(ind_plot_fn, rasterize=True)
         plt.close('all')
 
         #Generate group plots:
@@ -163,48 +172,49 @@ for group in ['r', 'c']:
         group_rts[day[:4]] = RT
         group_acc[day[:4]] = Acc
 
+# Now generate the up to date group summary figures
 sns.set_context(context='paper', font_scale=2.0)
-sns.set_style("ticks")
+sns.set_style("white", {'axes.linewidth':0.0001, 'axes.edgecolor':'black'})
 fig = plt.figure(figsize=(8,12))
 ax1 = fig.add_subplot(321)
 ax2 = fig.add_subplot(322)
 
-#Generate group Summaries Accuracy
+#Generate group accuracy plots
 plt.subplot(321)
 result = pd.concat(group_acc.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'seqAcc')
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
-    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df, estimator=np.nanmean,  err_style="ci_bars",color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
+    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df, estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
 ax.set(xlabel='Day', ylabel='Accuracy')
-ax.set_title('Accuracy')
-plt.axis([0,11,.5,1])
+ax.set_title('(a)',  y=1.1, loc='left', x = -0.37, weight='bold')
+plt.axis([1,10,0,1])
+plt.xticks(np.arange(1,10.1,1))
 plt.legend(loc='lower left')
-plt.xticks(np.arange(1,11,1))
+plt.grid(linestyle='dotted')
 
 
-#Generate Response Times
+#Generate group response time plots
 plt.subplot(322)
 result = pd.concat(group_rts.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'zscoredRT')
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
-    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars",color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
+    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
 ax.set(xlabel='Day', ylabel='Response Time (z-units)')
-ax.set_title('Speed')
-plt.axis([0,11,0,7])
-plt.xticks(np.arange(1,11,1))
+ax.set_title('(b)',  y=1.1, loc='left', x = -0.35, weight='bold')
+plt.axis([1,10,0,5])
+plt.xticks(np.arange(1,10.1,1))
 plt.legend(loc='upper left')
-sns.despine(offset=5, trim=True);
-
+plt.grid(linestyle='dotted')
 
 fig.add_subplot(312)
 fig.add_subplot(313)
 
+#Generate group summaries autocorrelation
 plt.subplot(312)
-#Generate group Summaries Autocorrelation
 result = pd.concat(group_acfs.values())
 result = result.loc[result['group']=='response']
 result['day'] = result.index
@@ -216,18 +226,13 @@ ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=
 ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
 legend = ax.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
 plt.setp(legend.get_title(),fontsize='xx-small')
-
-group_plot_fn = out_path + 'group' + group_dict[group] + '.svg'
-ax.set_title('Response Group', y=.9)
-plt.axis([0.5,16, -0.5,1])
+ax.set_title('(c)', y=0.9, loc='left', x = -0.15, weight='bold')
+plt.axis([1,15, -0.25,.5])
 plt.xticks(np.arange(1,16,1))
-plt.yticks(np.arange(-.5,1,0.25))
-plt.plot(np.linspace(1,15,1000), [0]*1000, 'k', linestyle='dashed')
-sns.despine(offset=.25, trim=True);
-sns.set_style("ticks")
+plt.yticks(np.arange(-.25,.51,0.25))
+plt.grid(linestyle='dotted')
 
 plt.subplot(313)
-#Generate group Summaries Autocorrelation
 result = pd.concat(group_acfs.values())
 result = result.loc[result['group']=='cue']
 result['day'] = result.index
@@ -239,18 +244,15 @@ ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=
 ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
 legend = ax.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
 plt.setp(legend.get_title(),fontsize='xx-small')
-group_plot_fn = out_path + 'group' + group_dict[group] + '.svg'
-ax.set_title('Cue Group', y=.9)
-plt.axis([0.5,16, -0.5,1])
+ax.set_title('(d)', y=0.9, loc='left', x = -0.15, weight='bold')
+plt.axis([1,15, -0.25,.5])
 plt.xticks(np.arange(1,16,1))
-plt.yticks(np.arange(-.5,1,0.25))
-plt.plot(np.linspace(1,15,1000), [0]*1000, 'k', linestyle='dashed')
-sns.despine(offset=.25, trim=True);
-sns.set_style("ticks")
+plt.yticks(np.arange(-.25,.51,0.25))
+plt.grid(linestyle='dotted')
 plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 
+# Save the Figure
 group_plot_fn = out_path + 'group_performance.svg'
-fig.savefig(fileoutname)
 plt.savefig(group_plot_fn)
 plt.close('all')
 
@@ -258,16 +260,14 @@ plt.close('all')
 fromaddr = 'beuk.pat@gmail.com'
 toaddrs  = 'beuk.pat@gmail.com'
 msg = 'modmap_update'
-
 msg = MIMEMultipart()
 msg['Subject'] = 'modmap_update'
 msg['From'] = 'beuk.pat@gmail.com'
 msg['To'] = 'beuk.pat@gmail.com'
 msg.preamble = ''
-
-# Credentials
 username = 'beuk.pat'
 password = ''
+#Grab the group summary figures
 for file in glob.glob(out_path + 'group*.svg'):
     fp = open(file, 'rb')
     img = MIMEImage(fp.read(), name=os.path.basename(file), _subtype="svg")

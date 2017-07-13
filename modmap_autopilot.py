@@ -35,6 +35,7 @@ group_rts = {}
 group_acc= {}
 group_acfs = {}
 group_dict = {'r':'cue', 'c':'response'}
+group_set_acfs = {}
 
 # Loop through the two groups (r and c) in the study
 for group in ['r', 'c']:
@@ -172,15 +173,24 @@ for group in ['r', 'c']:
         group_rts[day[:4]] = RT
         group_acc[day[:4]] = Acc
 
+        first_set_acfs = RT.copy()
+        del first_set_acfs['zscoredRT']
+        first_set_acfs['firstset']=seqLags[['lag1', 'lag2', 'lag3']].mean(axis=1)
+        first_set_acfs['seq_index']=seqLags[['lag4']]
+        first_set_acfs['group']  = group_dict[group]
+        group_set_acfs[day[:4]] = first_set_acfs
+
 # Now generate the up to date group summary figures
 sns.set_context(context='paper', font_scale=2.0)
 sns.set_style("white", {'axes.linewidth':0.0001, 'axes.edgecolor':'black'})
 fig = plt.figure(figsize=(8,12))
-ax1 = fig.add_subplot(321)
-ax2 = fig.add_subplot(322)
+ax1 = fig.add_subplot(421)
+ax2 = fig.add_subplot(422)
+
+
 
 #Generate group accuracy plots
-plt.subplot(321)
+plt.subplot(421)
 result = pd.concat(group_acc.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'seqAcc')
@@ -196,7 +206,7 @@ plt.grid(linestyle='dotted')
 
 
 #Generate group response time plots
-plt.subplot(322)
+plt.subplot(422)
 result = pd.concat(group_rts.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'zscoredRT')
@@ -205,16 +215,15 @@ with warnings.catch_warnings():
     ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
 ax.set(xlabel='Day', ylabel='Response Time (z-units)')
 ax.set_title('(b)',  y=1.1, loc='left', x = -0.35, weight='bold')
-plt.axis([1,10,0,5])
+plt.axis([1,10,0,6])
 plt.xticks(np.arange(1,10.1,1))
 plt.legend(loc='upper left')
 plt.grid(linestyle='dotted')
 
-fig.add_subplot(312)
-fig.add_subplot(313)
-
+fig.add_subplot(413)
+fig.add_subplot(414)
 #Generate group summaries autocorrelation
-plt.subplot(312)
+plt.subplot(413)
 result = pd.concat(group_acfs.values())
 result = result.loc[result['group']=='response']
 result['day'] = result.index
@@ -226,13 +235,13 @@ ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=
 ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
 legend = ax.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
 plt.setp(legend.get_title(),fontsize='xx-small')
-ax.set_title('(c)', y=0.9, loc='left', x = -0.15, weight='bold')
+ax.set_title('(e)', y=1.1, loc='left', x = -0.15, weight='bold')
 plt.axis([1,15, -0.25,.5])
 plt.xticks(np.arange(1,16,1))
 plt.yticks(np.arange(-.25,.51,0.25))
 plt.grid(linestyle='dotted')
 
-plt.subplot(313)
+plt.subplot(414)
 result = pd.concat(group_acfs.values())
 result = result.loc[result['group']=='cue']
 result['day'] = result.index
@@ -244,14 +253,44 @@ ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=
 ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
 legend = ax.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
 plt.setp(legend.get_title(),fontsize='xx-small')
-ax.set_title('(d)', y=0.9, loc='left', x = -0.15, weight='bold')
+ax.set_title('(f)', y=1.1, loc='left', x = -0.15, weight='bold')
 plt.axis([1,15, -0.25,.5])
 plt.xticks(np.arange(1,16,1))
 plt.yticks(np.arange(-.25,.51,0.25))
 plt.grid(linestyle='dotted')
-plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
 
-# Save the Figure
+#Generate summaries of seg/parse plots
+fig.add_subplot(423)
+fig.add_subplot(424)
+
+plt.subplot(423)
+result = pd.concat(group_set_acfs.values())
+result['Day'] = result.index
+df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'firstset')
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df, estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=False)
+ax.set(xlabel='Day', ylabel=r'$\mu$ first three lags')
+ax.set_title('(c)',  y=1.1, loc='left', x = -0.37, weight='bold')
+plt.axis([1,10,-.1,.3])
+plt.xticks(np.arange(1,10.1,1))
+plt.grid(linestyle='dotted')
+
+
+#Generate group response time plots
+plt.subplot(424)
+result = pd.concat(group_set_acfs.values())
+result['Day'] = result.index
+df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'seq_index')
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=False)
+ax.set(xlabel='Day', ylabel='4th lag')
+ax.set_title('(d)',  y=1.1, loc='left', x = -0.35, weight='bold')
+plt.axis([1,10,-.1,.3])
+plt.xticks(np.arange(1,10.1,1))
+plt.grid(linestyle='dotted')
+plt.tight_layout(pad=0.2, w_pad=0.2, h_pad=.5)
 group_plot_fn = out_path + 'group_performance.svg'
 plt.savefig(group_plot_fn)
 plt.close('all')

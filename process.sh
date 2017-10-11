@@ -2,7 +2,7 @@
 scp -P 33 -r pbeukema@fileserver2.sibr.cmu.edu:/home/pbeukema/coax_Images/$file_id/ /data/modMap/subjects/$sid/$session/
 # ssh-keygen
 
-MUST USE MATLAB R2013
+# MUST USE MATLAB R2013 for this particular dataset 
 
 #Directory structure4
 # -modMap
@@ -33,18 +33,18 @@ matlab -nodesktop -nosplash -r "modMap_ss_voxel_extraction(${sid})"
 # Transfer files to cluster
 rsync -zavr -e ssh --delete --include '*/' --include='*urRER_Run*.nii' --include='mask.*' --in='surface_voxels.mat' --include='SPM.mat' --exclude='*' /data/modMap/subjects/${sid} --prune-empty-dirs pbeukema@psych-o.hpc1.cs.cmu.edu:/home/pbeukema/modMap/subjects
 
-# write and submit a pbs job for this subject
+# write and submit a pbs job for this subject (this is run on the cluster)
 qsub -v SID=${sid} mm_searchlight // mm_searchligh_simple
 
-# transfer files back scp
+# copy files back from cluster to local computer
 scp pbeukema@psych-o.hpc1.cs.cmu.edu:/home/pbeukema/modMap/subjects/${sid}/ss* /data/modMap/subjects/${sid}/searchlights/
 
-# align ind volumes to freesurfer space with BB alignment then align to group surface with spherical registration
+# align individual volumes to freesurfer space with BB alignment then align to group surface with spherical registration
 Smooth images in the volume
 sh /data/modMap/bin/bb_and_surf2vol.sh ${sid}
 
-# Generate figures with pycortex (which automatically registers volume to mean)
-# This must be run from within the pyCortex directory ~/pyCortexx
+# Generate figures with pycortex
+# Run from within a jupyter notebook and the ~/pyCortex directory
 pyCortex_show.sh
 
 # make an average subject out of modMap

@@ -21,6 +21,8 @@ import time
 import warnings
 
 # Use os.path.expanduser if you are working on multiple machines, this way relative paths will point to right place
+# Use os.path.expanduser if you are working on multiple machines, this way relative paths will point to right place
+# Use os.path.expanduser if you are working on multiple machines, this way relative paths will point to right place
 os.chdir(os.path.expanduser('~/Dropbox/modmap/behavior/'))
 out_path = os.path.expanduser('~/Dropbox/modmap/analysis/')
 
@@ -55,7 +57,7 @@ for group in ['r', 'c']:
 
         #initialize the dataframes
         Acc = pd.DataFrame(columns=('Day', 'randAcc', 'seqAcc'))
-        RT = pd.DataFrame(columns = ('Day', 'zscoredRT'))
+        RT = pd.DataFrame(columns = ('Day', 'zscoredRT', 'duration'))
         sdRT = pd.DataFrame(columns = ('Day', 'sdRTseq','sdRTrand', 'sdRatio'))
         lag_names = ['lag' + str(i) for i in  range(1,16)]
         chunkSizeSeq = pd.DataFrame(columns=('Day', 'chunkSize'))
@@ -73,12 +75,14 @@ for group in ['r', 'c']:
         # populate the dataframes containing each summary statistic for each day
         for day in sub_files:
             df = pd.read_csv(day)
-            Acc.loc[int(day[day.find('session')+8:-12])] = [int(day[day.find('session')+8:-12]),df['accuracy'][5], df['accuracy'][6]]
+
+            this_day = int(day[day.find('session')+8:-12])
+            Acc.loc[this_day] = [this_day,df['accuracy'][5], df['accuracy'][6]]
             zscoreRT = (df['rt_all'][5] - df['rt_all'][6])/df['sdRT'][5]
-            RT.loc[int(day[day.find('session')+8:-12])] = [int(day[day.find('session')+8:-12]), zscoreRT]
-            sdRT.loc[int(day[day.find('session')+8:-12])] = [int(day[day.find('session')+8:-12]), df['sdRT'][6],df['sdRT'][5], df['sdRT'][6]/df['sdRT'][5]]
-            randLags.loc[int(day[day.find('session')+8:-12])] = df[lag_names].loc[5]
-            seqLags.loc[int(day[day.find('session')+8:-12])] = df[lag_names].loc[6]
+            RT.loc[this_day] = [this_day, zscoreRT, df['rt_all'][6]]
+            sdRT.loc[this_day] = [this_day, df['sdRT'][6],df['sdRT'][5], df['sdRT'][6]/df['sdRT'][5]]
+            randLags.loc[this_day] = df[lag_names].loc[6]
+            seqLags.loc[this_day] = df[lag_names].loc[6]
 
         # Sort so that dataframes are ordered by day
         randLags = randLags.sort_index(axis=0)
@@ -87,15 +91,16 @@ for group in ['r', 'c']:
         # Setting the context in this way will make your figure font size appear properly on a standard paper e.g for a journal submission.
         sns.set_context(context='paper', font_scale=2.0)
         # this is the setting you want
-        sns.set_style("white", {'axes.linewidth':0.0001, 'axes.edgecolor':'black'})
+        sns.set_style("white", {'axes.linewidth':0.0000001, 'axes.edgecolor':'black'})
 
         #Set up one big figure for each panel and then add subplots to that figure (Panel A, B and so on)
         fig = plt.figure(figsize=(8,12))
-        ax1 = fig.add_subplot(321)
-        ax2 = fig.add_subplot(322)
+        ax1 = fig.add_subplot(331)
+        ax2 = fig.add_subplot(332)
+        ax3 = fig.add_subplot(333)
 
         #Generate Accuracy Plots for the Sequence
-        plt.subplot(321) # Specify which subplot to write to
+        plt.subplot(331) # Specify which subplot to write to
         Acc.sort_values(by=['Day'], ascending = [True], inplace=True)
         sns.regplot('Day', 'seqAcc',data=Acc, fit_reg=False, ax=ax1, scatter_kws={'s':40})
         plt.axis([1,10,.5,1])
@@ -106,7 +111,7 @@ for group in ['r', 'c']:
         plt.grid(linestyle='dotted')
 
         #Generate RT plots
-        plt.subplot(322)
+        plt.subplot(332)
         RT.sort_values(by=['Day'], ascending = [True], inplace=True)
         sns.regplot('Day', 'zscoredRT',data=RT, fit_reg=False, ax=ax2, scatter_kws={'s':40})
         plt.axis([1,10,0,6])
@@ -116,7 +121,21 @@ for group in ['r', 'c']:
         plt.title('(b)', loc='left',y = 1.1, x = -0.35)
         plt.grid(linestyle='dotted')
 
-        # add subplots for panels C and D
+        # Skill plot
+        plt.subplot(333) #
+        Acc['errorRate'] = 1 - Acc['seqAcc']
+        Acc.loc[Acc.errorRate == 0, 'errorRate'] = 0.01
+        Acc['skill'] =  10*(1-Acc['errorRate'])/(Acc['errorRate']*np.log(1000*RT['duration'])**5)
+        RT.sort_values(by=['Day'], ascending = [True], inplace=True)
+        sns.regplot('Day', 'skill',data=Acc, fit_reg=False, ax=ax3, scatter_kws={'s':40})
+        plt.axis([1,10,-300,200])
+        plt.xticks(np.arange(1,10.1,1))
+        plt.ylabel('Skill')
+        plt.xlabel('Day')
+        plt.title('(c)', loc='left',y = 1.1, x = -0.35)
+        plt.grid(linestyle='dotted')
+
+                # add subplots for panels C and D
         fig.add_subplot(312)
         fig.add_subplot(313)
 
@@ -137,6 +156,7 @@ for group in ['r', 'c']:
         plt.xticks(np.arange(1,16,1))
         plt.yticks(np.arange(-.5,.76,0.25))
         plt.grid(linestyle='dotted')
+
 
         plt.subplot(313)
         greens = plt.get_cmap('Greens')
@@ -183,47 +203,57 @@ for group in ['r', 'c']:
 # Now generate the up to date group summary figures
 sns.set_context(context='paper', font_scale=2.0)
 sns.set_style("white", {'axes.linewidth':0.0001, 'axes.edgecolor':'black'})
-fig = plt.figure(figsize=(8,12))
-ax1 = fig.add_subplot(421)
-ax2 = fig.add_subplot(422)
+fig = plt.figure(figsize=(8,15))
 
 
 
 #Generate group accuracy plots
-plt.subplot(421)
+plt.subplot(511)
 result = pd.concat(group_acc.values())
 result['Day'] = result.index
+result.drop([])
 df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'seqAcc')
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
-    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df, estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
+    ax = sns.boxplot(x='Day', y='value',hue='group',data=df,palette="PRGn")
 ax.set(xlabel='Day', ylabel='Accuracy')
-ax.set_title('(a)',  y=1.1, loc='left', x = -0.37, weight='bold')
-plt.axis([1,10,0,1])
-plt.xticks(np.arange(1,10.1,1))
-plt.legend(loc='lower left')
 plt.grid(linestyle='dotted')
+plt.axis([0,10,0,1])
 
 
-#Generate group response time plots
-plt.subplot(422)
+
+
+
+#Generate grup response time plots
+plt.subplot(512)
 result = pd.concat(group_rts.values())
 result['Day'] = result.index
 df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'zscoredRT')
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=RuntimeWarning)
-    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=True)
-ax.set(xlabel='Day', ylabel='Response Time (z-units)')
-ax.set_title('(b)',  y=1.1, loc='left', x = -0.35, weight='bold')
-plt.axis([1,10,0,6])
-plt.xticks(np.arange(1,10.1,1))
+    ax = sns.boxplot(x='Day', y='value',hue='group',data=df,palette="PRGn")
+    ax.set(xlabel='Day', ylabel='RT (z-units)')
 plt.legend(loc='upper left')
 plt.grid(linestyle='dotted')
 
-fig.add_subplot(413)
-fig.add_subplot(414)
+
+#Generate group skill plots
+plt.subplot(513)
+result = pd.concat(group_acc.values())
+result['Day'] = result.index
+df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'skill')
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=RuntimeWarning)
+    ax = sns.boxplot(x="Day", y="value",hue='group', data=df,palette="PRGn");
+ax.set(xlabel='Day', ylabel='skill (a.u.)')
+plt.grid(linestyle='dotted')
+plt.legend(loc='upper left')
+
+
+
+
 #Generate group summaries autocorrelation
-plt.subplot(413)
+plt.subplot(514)
 result = pd.concat(group_acfs.values())
 result = result.loc[result['group']=='response']
 result['day'] = result.index
@@ -235,13 +265,13 @@ ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=
 ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
 legend = ax.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
 plt.setp(legend.get_title(),fontsize='xx-small')
-ax.set_title('(e)', y=1.1, loc='left', x = -0.15, weight='bold')
+
 plt.axis([1,15, -0.25,.5])
 plt.xticks(np.arange(1,16,1))
 plt.yticks(np.arange(-.25,.51,0.25))
 plt.grid(linestyle='dotted')
 
-plt.subplot(414)
+plt.subplot(515)
 result = pd.concat(group_acfs.values())
 result = result.loc[result['group']=='cue']
 result['day'] = result.index
@@ -253,42 +283,10 @@ ax = sns.tsplot(time='variable', value='value',unit='sid', condition="day",data=
 ax.set(xlabel='Lag (Trial)', ylabel='Autocorrelation')
 legend = ax.legend(loc='upper right', ncol=1, prop={'size':8}, title='Training Day')
 plt.setp(legend.get_title(),fontsize='xx-small')
-ax.set_title('(f)', y=1.1, loc='left', x = -0.15, weight='bold')
+
 plt.axis([1,15, -0.25,.5])
 plt.xticks(np.arange(1,16,1))
 plt.yticks(np.arange(-.25,.51,0.25))
-plt.grid(linestyle='dotted')
-
-#Generate summaries of seg/parse plots
-fig.add_subplot(423)
-fig.add_subplot(424)
-
-plt.subplot(423)
-result = pd.concat(group_set_acfs.values())
-result['Day'] = result.index
-df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'firstset')
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", category=RuntimeWarning)
-    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df, estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=False)
-ax.set(xlabel='Day', ylabel=r'$\mu$ first three lags')
-ax.set_title('(c)',  y=1.1, loc='left', x = -0.37, weight='bold')
-plt.axis([1,10,-.1,.3])
-plt.xticks(np.arange(1,10.1,1))
-plt.grid(linestyle='dotted')
-
-
-#Generate group response time plots
-plt.subplot(424)
-result = pd.concat(group_set_acfs.values())
-result['Day'] = result.index
-df = pd.melt(result, id_vars=['Day', 'sid', 'group'], value_vars = 'seq_index')
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", category=RuntimeWarning)
-    ax = sns.tsplot(time='Day', value='value',condition='group',unit='sid',data=df,estimator=np.nanmean, err_style="ci_bars", color=dict(cue="purple", response="green"), interpolate=False, ci=68, legend=False)
-ax.set(xlabel='Day', ylabel='4th lag')
-ax.set_title('(d)',  y=1.1, loc='left', x = -0.35, weight='bold')
-plt.axis([1,10,-.1,.3])
-plt.xticks(np.arange(1,10.1,1))
 plt.grid(linestyle='dotted')
 plt.tight_layout(pad=0.2, w_pad=0.2, h_pad=.5)
 group_plot_fn = out_path + 'group_performance.svg'

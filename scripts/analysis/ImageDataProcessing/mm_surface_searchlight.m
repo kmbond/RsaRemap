@@ -3,7 +3,7 @@ function mm_surface_searchlight(SID);
 % function gen_searchlight(spm_file, mask_file, varargin);
 
 
-matlabpool open
+matlabpool open 
 addpath('/home/pbeukema/r2d4/bin/');
 addpath('/home/pbeukema/modMap/bin/');
 addpath('/home/pbeukema/r2d4/subjects/');
@@ -14,7 +14,7 @@ SID = sprintf('0%s', num2str(SID));
 % General searchlight routine. Built for RSA
 plot_flag = 0; % don't plot on each run
 outfname = 'ss';
-
+ 
 which_session = {'Pre', 'Post'};
 for session = 1:2;
     wdir = sprintf('/home/pbeukema/modMap/subjects/%s/%s/GLM/', SID, which_session{session});
@@ -40,7 +40,7 @@ SPM_post = load(spm_file2);
 SPM_pre = SPM_pre.SPM;
 SPM_post = SPM_post.SPM;
 
-% Check if output directory exists and if not create it.
+% Check if output directory exists and if not create it. 
 output_dir = sprintf('/home/pbeukema/modMap/subjects/%s/searchlights/', SID);
 if ~exist(output_dir)
     mkdir(output_dir)
@@ -76,6 +76,10 @@ h_vol_cue_change = NaN(size(Ymask));
 h_vol_response_change = NaN(size(Ymask));
 h_vol_both_change = NaN(size(Ymask));
 
+h_vol_pre_finger_vs_set = NaN(size(Ymask));
+h_vol_post_finger_vs_set = NaN(size(Ymask));
+h_vol_pre_cue_vs_set = NaN(size(Ymask));
+h_vol_post_cue_vs_set = NaN(size(Ymask));
 
 n_betas = length(SPM_pre.Sess(1).col);
 
@@ -83,7 +87,6 @@ n_betas = length(SPM_pre.Sess(1).col);
 pre = [];
 post = [];
 change = [];
-
 
 pre_cue = [];
 pre_response = [];
@@ -93,29 +96,40 @@ post_cue = [];
 post_response = [];
 post_both = [];
 
+pre_finger_vs_set= [];
+post_finger_vs_set= [];
+pre_cue_vs_set = [];
+post_cue_vs_set = [];
+
 cue_change = [];
 response_change = [];
 both_change = [];
 
 
+%Get unique orderings per subjects
+pre_finger_order = load(sprintf('/home/pbeukema/modMap/subjects/%s/Pre/finger_reordering_Pre.csv', SID));
+pre_cue_order = load(sprintf('/home/pbeukema/modMap/subjects/%s/Pre/cue_reordering_Pre.csv', SID));
+post_finger_order =  load(sprintf('/home/pbeukema/modMap/subjects/%s/Post/finger_reordering_Post.csv', SID));
+post_cue_order =  load(sprintf('/home/pbeukema/modMap/subjects/%s/Post/cue_reordering_Post.csv', SID));
+
 
 parfor i = 1:length(vox_centers);
-
+    
     %Select the center voxel and searchlight voxels
     this_center = vox_centers(i);
     this_searchlight = surface_voxels{i};
-
+        
     [x, y, z] = ind2sub(size(Ymask),this_searchlight);
     coord = double([x;y;z]); %searchlight voxels
-
+    
     % Extract data
     y_data_pre = spm_get_data(SPM_pre.xY.VY, coord);
     y_data_post = spm_get_data(SPM_post.xY.VY, coord);
-
+        
     %Remove columns of zeros o/w matrix may not be positive semi definite:
     y_data_pre(:, find(sum(abs(y_data_pre)) == 0)) = [];
     y_data_post(:, find(sum(abs(y_data_post)) == 0)) = [];
-
+    
     %Occasionaly grabs data outside mask - unclear why
     if numel(y_data_pre)==0;
         pre_cue(i) = NaN;
@@ -129,22 +143,28 @@ parfor i = 1:length(vox_centers);
         cue_change(i) = NaN;
         response_change(i) = NaN;
         both_change(i) = NaN;
+        
+        pre_finger_vs_set(i) =  NaN;
+        post_finger_vs_set(i) =  NaN;
+        pre_cue_vs_set(i) =  NaN;
+        post_cue_vs_set(i) =  NaN;
         continue
     end;
-
+    
     % Orthogonalize y_data
     y_data_pre = grab95pca(y_data_pre);
-    y_data_post = grab95pca(y_data_post);
+    y_data_post = grab95pca(y_data_post);	
 
     % Prewhiten the beta coefficients
     [beta_w_pre, beta_pre, resMS_pre] = mva_prewhiten_beta(y_data_pre, SPM_pre);
     [beta_w_post, beta_post, resMS_post] = mva_prewhiten_beta(y_data_post, SPM_post);
 
-    % Run RSA to obtain distances between patterns
-    [pre_b, pre_r, pre_c, ~, ~] = modMap_rsa(beta_w_pre, n_betas);
-    [post_b, post_r, post_c, ~, ~] = modMap_rsa(beta_w_post, n_betas);
-
+    % Run RSA to obtain distances between patterns 
+    [pre_b, pre_r, pre_c, pre_finger_set, pre_cue_set] = modMap_rsa(beta_w_pre, n_betas, pre_finger_order, pre_cue_order);
+    [post_b, post_r, post_c, post_finger_set, post_cue_set] = modMap_rsa(beta_w_post, n_betas, post_finger_order, post_cue_order);
+	
     %Compute the difference between pre and post
+   
     pre_cue(i) = pre_c*100;
     pre_response(i) = pre_r*100;
     pre_both(i) = pre_b*100;
@@ -156,7 +176,12 @@ parfor i = 1:length(vox_centers);
     cue_change(i) =  (post_c - pre_c)*100;
     response_change(i) =   (post_r - pre_r)*100;
     both_change(i) =  (post_b - pre_b)*100;
-
+    
+    pre_finger_vs_set(i) = pre_finger_set*100;
+    post_finger_vs_set(i) = post_finger_set*100;
+    pre_cue_vs_set(i) = pre_cue_set*100;
+    post_cue_vs_set(i) = post_cue_set*100;
+    
 end;
 
 h_vol_pre_cue(vox_centers) = pre_cue;
@@ -170,6 +195,11 @@ h_vol_post_both(vox_centers) = post_both;
 h_vol_cue_change(vox_centers) = cue_change;
 h_vol_response_change(vox_centers) = response_change;
 h_vol_both_change(vox_centers) = both_change;
+
+h_vol_pre_finger_vs_set(vox_centers) = pre_finger_vs_set;
+h_vol_post_finger_vs_set(vox_centers) = post_finger_vs_set;
+h_vol_pre_cue_vs_set(vox_centers) = pre_cue_vs_set;
+h_vol_post_cue_vs_set(vox_centers) = post_cue_vs_set;
 
 % Now save the output files to searchlight dir
 fp = sprintf('/home/pbeukema/modMap/subjects/%s/searchlights/', SID);
@@ -218,6 +248,30 @@ Vh = Vmask;
 Vh.dt(1)= 16;
 Vh.fname = fullfile(fp,sprintf('%s_both_change.img', outfname));
 spm_write_vol(Vh, h_vol_both_change);
+
+%Reorderings for testing set
+
+
+Vh = Vmask;
+Vh.dt(1)= 16;
+Vh.fname = fullfile(fp,sprintf('%s_pre_finger_vs_set.img', outfname));
+spm_write_vol(Vh, h_vol_pre_finger_vs_set);
+
+Vh = Vmask;
+Vh.dt(1)= 16;
+Vh.fname = fullfile(fp,sprintf('%s_post_finger_vs_set.img', outfname));
+spm_write_vol(Vh, h_vol_post_finger_vs_set);
+
+Vh = Vmask;
+Vh.dt(1)= 16;
+Vh.fname = fullfile(fp,sprintf('%s_pre_cue_vs_set.img', outfname));
+spm_write_vol(Vh, h_vol_pre_cue_vs_set);
+
+Vh = Vmask;
+Vh.dt(1)= 16;
+Vh.fname = fullfile(fp,sprintf('%s_post_cue_vs_set.img', outfname));
+spm_write_vol(Vh, h_vol_post_cue_vs_set);
+
 
 matlabpool close;
 exit;
